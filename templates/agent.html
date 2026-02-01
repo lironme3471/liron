@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent View - Create Appeal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .back-link {
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .back-link:hover {
+            opacity: 1;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .eval-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .eval-info h3 {
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        
+        .eval-detail {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 10px;
+            margin: 5px 0;
+        }
+        
+        .eval-label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        .form-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        textarea, input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .ai-suggestion-box {
+            background: #e7f3ff;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .ai-suggestion-box h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .probability-bar {
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .suggestion-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .suggestion-list li {
+            padding: 10px 0 10px 30px;
+            position: relative;
+            border-bottom: 1px solid #d0d0d0;
+        }
+        
+        .suggestion-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-list li:before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-link">← Back to Home</a>
+            <h1>🤖 Agent View - Create Appeal</h1>
+            <p>Agent: {{ agent.name }}</p>
+        </div>
+        
+        <div class="content">
+            <div class="eval-info">
+                <h3>📋 Evaluation Details</h3>
+                <div class="eval-detail">
+                    <div class="eval-label">Score:</div>
+                    <div>{{ evaluation.score }}/100 ({{ evaluation.status.value }})</div>
+                </div>
+                <div class="eval-detail">
+                    <div class="eval-label">Task:</div>
+                    <div>{{ evaluation.task_description }}</div>
+                </div>
+                <div class="eval-detail">
+                    <div class="eval-label">Feedback:</div>
+                    <div>{{ evaluation.feedback }}</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Step 1: Get AI Assistance</h3>
+                <div class="form-group">
+                    <label for="initialThoughts">Your Initial Thoughts:</label>
+                    <textarea id="initialThoughts" placeholder="Why do you think the evaluation should be reconsidered?"></textarea>
+                </div>
+                <button class="btn" onclick="getAISuggestions()">Get AI Suggestions</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI is analyzing your situation...</p>
+            </div>
+            
+            <div class="ai-suggestion-box" id="aiSuggestions">
+                <h4>🤖 AI-Powered Suggestions</h4>
+                <div>
+                    <strong>Success Probability:</strong>
+                    <div class="probability-bar">
+                        <div class="probability-fill" id="probabilityBar">0%</div>
+                    </div>
+                </div>
+                <div style="margin: 15px 0;">
+                    <strong>Strength Assessment:</strong>
+                    <p id="strengthAssessment"></p>
+                </div>
+                <div style="margin: 15px 0;">
+                    <strong>Recommended Tone:</strong>
+                    <p id="toneRecommendation"></p>
+                </div>
+                <div style="margin: 15px 0;">
+                    <strong>💡 Suggested Points to Include:</strong>
+                    <ul class="suggestion-list" id="suggestedPoints"></ul>
+                </div>
+            </div>
+            
+            <div class="form-section" id="submitSection" style="display: none;">
+                <h3>Step 2: Complete Your Appeal</h3>
+                <div class="form-group">
+                    <label for="fullReason">Detailed Reason for Appeal:</label>
+                    <textarea id="fullReason" placeholder="Provide a comprehensive explanation..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="evidence">Supporting Evidence (one per line):</label>
+                    <textarea id="evidence" placeholder="e.g., email.pdf&#10;task_log.txt&#10;screenshot.png"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priority:</label>
+                    <select id="priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="submitAppeal()">Submit Appeal</button>
+            </div>
+            
+            <div class="alert alert-success" id="successMessage" style="display: none;">
+                <strong>✅ Success!</strong> Your appeal has been submitted and is now under review.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentAppealId = null;
+        
+        async function getAISuggestions() {
+            const initialThoughts = document.getElementById('initialThoughts').value;
+            
+            if (!initialThoughts.trim()) {
+                alert('Please enter your initial thoughts first.');
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/create_appeal', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({initial_thoughts: initialThoughts})
+                });
+                
+                const data = await response.json();
+                currentAppealId = data.appeal_id;
+                const suggestion = data.ai_suggestion;
+                
+                // Show suggestions
+                document.getElementById('probabilityBar').style.width = 
+                    (suggestion.estimated_success_probability * 100) + '%';
+                document.getElementById('probabilityBar').textContent = 
+                    Math.round(suggestion.estimated_success_probability * 100) + '%';
+                
+                document.getElementById('strengthAssessment').textContent = 
+                    suggestion.strength_assessment;
+                document.getElementById('toneRecommendation').textContent = 
+                    suggestion.tone_recommendation;
+                
+                const pointsList = document.getElementById('suggestedPoints');
+                pointsList.innerHTML = '';
+                suggestion.suggested_points.forEach(point => {
+                    const li = document.createElement('li');
+                    li.textContent = point;
+                    pointsList.appendChild(li);
+                });
+                
+                document.getElementById('aiSuggestions').style.display = 'block';
+                document.getElementById('submitSection').style.display = 'block';
+                document.getElementById('fullReason').value = initialThoughts;
+            } catch (error) {
+                alert('Error getting AI suggestions: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+        
+        async function submitAppeal() {
+            const reason = document.getElementById('fullReason').value;
+            const evidenceText = document.getElementById('evidence').value;
+            const priority = document.getElementById('priority').value;
+            
+            if (!reason.trim() || reason.length < 20) {
+                alert('Please provide a detailed reason (at least 20 characters).');
+                return;
+            }
+            
+            const evidence = evidenceText.split('\n').filter(e => e.trim());
+            
+            try {
+                const response = await fetch('/api/submit_appeal', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        appeal_id: currentAppealId,
+                        reason: reason,
+                        evidence: evidence,
+                        priority: priority
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('submitSection').style.display = 'none';
+                    window.scrollTo(0, 0);
+                }
+            } catch (error) {
+                alert('Error submitting appeal: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

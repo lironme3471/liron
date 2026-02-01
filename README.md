@@ -2,6 +2,27 @@
 
 A comprehensive system for agents to appeal evaluations with AI-powered suggestions, and for supervisors to efficiently triage and decide on appeals.
 
+## 🎯 Preview the Project
+
+**Try it now with the interactive web interface:**
+
+```bash
+python preview.py
+```
+
+Visit http://localhost:5000 to explore the system with a visual interface!
+
+### Screenshots
+
+**Home Page:**
+![Home Page](https://github.com/user-attachments/assets/b0f092a9-25dd-432c-bc79-cb1ec20b7d15)
+
+**Agent View - Create Appeal:**
+![Agent View](https://github.com/user-attachments/assets/54e8eca7-7ff2-4324-9673-198a3b331657)
+
+**Supervisor View - Triage Appeals:**
+![Supervisor View](https://github.com/user-attachments/assets/3222ae6b-44ae-4d9c-8f75-8a801632d0c8)
+
 ## Features
 
 ### Agent-Side Features
@@ -39,15 +60,34 @@ pip install -e .
 
 ## Usage
 
-### Running the Demo
+### 🌐 Web Preview (Recommended)
 
-The easiest way to see the system in action:
+The best way to explore the system with a visual interface:
+
+```bash
+python preview.py
+```
+
+Then open your browser to:
+- **Home**: http://localhost:5000/
+- **Agent View**: http://localhost:5000/agent
+- **Supervisor View**: http://localhost:5000/supervisor
+
+This provides an interactive web interface where you can:
+- Create appeals as an agent with real-time AI suggestions
+- View pending appeals as a supervisor with AI triage analysis
+- Make decisions with AI-generated draft responses
+- See the full workflow in action
+
+### 📱 CLI Demo
+
+Run a complete workflow demonstration in the terminal:
 
 ```bash
 python cli.py --demo
 ```
 
-This will run a complete workflow demonstration showing:
+This will show:
 1. An agent creating an appeal with AI assistance
 2. A supervisor triaging pending appeals
 3. A supervisor making a decision on an appeal
