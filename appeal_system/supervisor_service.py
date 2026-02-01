@@ -271,11 +271,12 @@ class SupervisorService:
         In production, this would fetch from a database.
         """
         # This is a mock implementation
+        from .models import EvaluationStatus
         return Evaluation(
             id=evaluation_id,
             agent_id="agent_123",
             evaluator_id="eval_456",
-            status="failed",
+            status=EvaluationStatus.FAILED,
             score=55.0,
             feedback="Performance did not meet expectations in several key areas.",
             criteria={"quality": 50, "timeliness": 60, "communication": 55},
