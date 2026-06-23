@@ -40,7 +40,7 @@
   .gen { font-size:12px; color:var(--muted); text-align:right; }
 
   /* ---- Stats bar ---- */
-  .stats { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:18px; }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
   .stat .v { font-size:24px; font-weight:800; color:var(--charcoal); }
   .stat .l { font-size:12px; color:var(--muted); margin-top:3px; text-transform:uppercase; letter-spacing:.4px; }
@@ -137,7 +137,7 @@
     <div class="brand">eHub Offline <span>Dashboard</span>
       <small>Engagement Hub Offline &middot; Open Opportunities (excl. Closed) &middot; Salesforce CPQ &middot; SKU 1464-3063</small>
     </div>
-    <div class="gen">Generated 23 Jun 2026, 15:38<br>ACV shown in USD (corporate currency)</div>
+    <div class="gen">Generated 23 Jun 2026, 15:42<br>ACV shown in USD (corporate currency)</div>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -372,13 +372,11 @@ function buildStats() {
   const tot = ALL.reduce((s,d)=>s+d.ACV,0);
   const accts = new Set(ALL.map(d=>d.AccountGroup)).size;
   const fed = ALL.filter(d=>d.FedRAMP==='Yes').length;
-  const acds = new Set(ALL.map(d=>d.ACD).filter(a=>a && a!=='—')).size;
   const s = [
     ['', ALL.length, 'Open Deals'],
     ['', accts, 'Accounts'],
     ['acv', fmtACV(tot), 'Total Pipeline ACV'],
     ['fed', fed, 'FedRAMP'],
-    ['', acds, 'Distinct ACDs'],
   ];
   document.getElementById('stats').innerHTML = s.map(([cls,v,l])=>
     `<div class="stat ${cls}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
@@ -395,16 +393,6 @@ function buildSidebar() {
       <span class="nums"><b>${m.c}</b><small>${fmtACV(m.acv)}</small></span></div>`;
   });
 
-  // By ACD
-  const acdMap={};
-  ALL.forEach(d=>{ const k=d.ACD; (acdMap[k]=acdMap[k]||{c:0,acv:0}); acdMap[k].c++; acdMap[k].acv+=d.ACV; });
-  let acdRows='';
-  Object.keys(acdMap).sort((a,b)=>acdMap[b].acv-acdMap[a].acv).forEach(k=>{
-    const m=acdMap[k];
-    acdRows += `<div class="row"><span class="lab"><span class="dot" style="background:${acdColor(k)}"></span>${esc(k)}</span>
-      <span class="nums"><b>${m.c}</b><small>${fmtACV(m.acv)}</small></span></div>`;
-  });
-
   // By Region
   const regMap={};
   ALL.forEach(d=>{ const k=d.Region||'(None)'; (regMap[k]=regMap[k]||0); regMap[k]++; });
@@ -415,7 +403,6 @@ function buildSidebar() {
 
   document.getElementById('side').innerHTML =
     `<div class="panel"><h3>By Stage</h3>${stageRows}</div>
-     <div class="panel"><h3>By ACD</h3>${acdRows}</div>
      <div class="panel"><h3>By Region</h3>${regRows}</div>`;
 }
 
