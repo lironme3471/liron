@@ -137,7 +137,7 @@
     <div class="brand">eHub Offline <span>Dashboard</span>
       <small>Engagement Hub Offline &middot; Open Opportunities (excl. Closed) &middot; Salesforce CPQ &middot; SKU 1464-3063</small>
     </div>
-    <div class="gen">Generated 23 Jun 2026, 15:16<br>ACV shown in USD (corporate currency)</div>
+    <div class="gen">Generated 23 Jun 2026, 15:38<br>ACV shown in USD (corporate currency)</div>
   </div>
 
   <div class="stats" id="stats"></div>
@@ -148,7 +148,6 @@
         <input id="search" type="text" placeholder="Search opportunity, account, owner&hellip;" oninput="render()">
         <select id="f-stage" onchange="render()"><option value="">All Stages</option></select>
         <select id="f-region" onchange="render()"><option value="">All Regions</option></select>
-        <select id="f-acd" onchange="render()"><option value="">All ACDs</option></select>
         <span class="count" id="count"></span>
       </div>
       <div class="tablewrap">
@@ -251,7 +250,6 @@ const COLS = [
   {key:'StageNum',label:'Stage'},
   {key:'CloseDate',label:'Close Date'},
   {key:'ACV',     label:'ACV'},
-  {key:'ACD',     label:'ACD'},
   {key:'Region',  label:'Region / Territory'},
   {key:'Owner',   label:'Owner'},
 ];
@@ -268,11 +266,9 @@ function filtered() {
   const q = document.getElementById('search').value.trim().toLowerCase();
   const fs = document.getElementById('f-stage').value;
   const fr = document.getElementById('f-region').value;
-  const fa = document.getElementById('f-acd').value;
   return ALL.filter(d => {
     if (fs !== '' && d.StageNum !== fs) return false;
     if (fr !== '' && (d.Region||'') !== fr) return false;
-    if (fa !== '' && d.ACD !== fa) return false;
     if (q) {
       const hay = (d.Name+' '+d.Account+' '+d.AccountGroup+' '+d.Owner+' '+d.ACD+' '+(d.Region||'')+' '+(d.Territory||'')).toLowerCase();
       if (!hay.includes(q)) return false;
@@ -291,7 +287,6 @@ function dealCells(d, showAccount) {
     <td><span class="stage ${sc}"><span class="num">${d.StageNum}</span>${esc(d.StageShort)}</span></td>
     <td>${fmtDate(d.CloseDate)}</td>
     <td class="acv-cell">${fmtACV(d.ACV)}${nativeNote}</td>
-    <td><span class="pill ${acdClass(d.ACD)}">${esc(d.ACD)}</span></td>
     <td>${regionDisp(d)}</td>
     <td>${esc(d.Owner)||'<span class="muted">&mdash;</span>'} ${d.FedRAMP==='Yes'?'<span class="fed">FedRAMP</span>':''}</td>`;
 }
@@ -319,15 +314,13 @@ function render() {
     order.forEach(acc => {
       const list = groups[acc].slice().sort((a,b)=> (a.CloseDate||'') < (b.CloseDate||'') ? -1 : (a.CloseDate||'')>(b.CloseDate||'')?1:0);
       const tot = list.reduce((s,x)=>s+x.ACV,0);
-      const acds = [...new Set(list.map(x=>x.ACD))];
-      const badges = acds.map(a=>`<span class="pill ${acdClass(a)}" style="margin-left:4px">${esc(a)}</span>`).join('');
       const isCol = !!collapsed[acc];
       nAccts++; nDeals += list.length;
       rows += `<tr class="acct-row ${isCol?'collapsed':''}" onclick="toggle('${esc(acc).replace(/'/g,"\\'")}')">
         <td colspan="4"><span class="caret">▾</span><span class="acct-name">${esc(acc)}</span>
-          <span class="acct-meta">${list.length} deal${list.length>1?'s':''}</span>${badges}</td>
+          <span class="acct-meta">${list.length} deal${list.length>1?'s':''}</span></td>
         <td class="acct-acv">${fmtACV(tot)}</td>
-        <td colspan="3"></td></tr>`;
+        <td colspan="2"></td></tr>`;
       if (!isCol) {
         list.forEach(d => {
           rows += `<tr class="deal first-cell-indent">${dealCellsIndented(d)}</tr>`;
@@ -350,7 +343,7 @@ function render() {
     sorted.forEach(d => { rows += `<tr class="deal">${dealCells(d, true)}</tr>`; });
   }
 
-  body.innerHTML = rows || `<tr><td colspan="8" style="padding:30px;text-align:center" class="muted">No deals match the current filters.</td></tr>`;
+  body.innerHTML = rows || `<tr><td colspan="7" style="padding:30px;text-align:center" class="muted">No deals match the current filters.</td></tr>`;
   document.getElementById('count').textContent = `${nDeals} deal${nDeals!==1?'s':''} · ${nAccts} account${nAccts!==1?'s':''}`;
 }
 
@@ -369,7 +362,6 @@ function dealCellsIndented(d) {
     <td><span class="stage ${sc}"><span class="num">${d.StageNum}</span>${esc(d.StageShort)}</span></td>
     <td>${fmtDate(d.CloseDate)}</td>
     <td class="acv-cell">${fmtACV(d.ACV)}${nativeNote}</td>
-    <td><span class="pill ${acdClass(d.ACD)}">${esc(d.ACD)}</span></td>
     <td>${regionDisp(d)}</td>
     <td>${esc(d.Owner)||'<span class="muted">&mdash;</span>'} ${d.FedRAMP==='Yes'?'<span class="fed">FedRAMP</span>':''}</td>`;
 }
@@ -436,10 +428,6 @@ function populateFilters() {
   const regions = [...new Set(ALL.map(d=>d.Region).filter(Boolean))].sort();
   const rSel = document.getElementById('f-region');
   regions.forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; rSel.appendChild(o); });
-
-  const acds = [...new Set(ALL.map(d=>d.ACD).filter(a=>a&&a!=='—'))].sort();
-  const aSel = document.getElementById('f-acd');
-  acds.forEach(a=>{ const o=document.createElement('option'); o.value=a; o.textContent=a; aSel.appendChild(o); });
 }
 
 function init() {
