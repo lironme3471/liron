@@ -1,750 +1,431 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eHub Pipeline Dashboard</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: linear-gradient(135deg, #21212b 0%, #0f0f12 100%);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .password-gate {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(33, 33, 43, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            flex-direction: column;
-        }
-        
-        .password-gate.hidden { display: none !important; }
-        
-        .password-card {
-            background: linear-gradient(135deg, #1a1a22 0%, #24242f 100%);
-            border: 1px solid rgba(54, 169, 252, 0.2);
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        }
-        
-        .password-card h1 {
-            color: #3694fc;
-            margin-bottom: 10px;
-            font-size: 28px;
-        }
-        
-        .password-card p {
-            color: #aaa;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        
-        .password-card input {
-            width: 280px;
-            padding: 12px;
-            margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(54, 169, 252, 0.3);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-        }
-        
-        .password-card input::placeholder { color: #777; }
-        .password-card input:focus {
-            outline: none;
-            border-color: #3694fc;
-            background: rgba(54, 169, 252, 0.05);
-        }
-        
-        .password-card button {
-            width: 280px;
-            padding: 12px;
-            background: #3694fc;
-            border: none;
-            border-radius: 6px;
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        .password-card button:hover {
-            background: #2875d9;
-            box-shadow: 0 4px 16px rgba(54, 169, 252, 0.4);
-        }
-        
-        .password-card .error {
-            color: #ff5b8a;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        
-        .dashboard {
-            width: 100%;
-            padding: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(54, 169, 252, 0.2);
-        }
-        
-        .header h1 {
-            font-size: 32px;
-            color: #3694fc;
-            margin-bottom: 5px;
-        }
-        
-        .header p {
-            color: #999;
-            font-size: 14px;
-        }
-        
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: linear-gradient(135deg, rgba(54, 169, 252, 0.1) 0%, rgba(97, 0, 255, 0.05) 100%);
-            border: 1px solid rgba(54, 169, 252, 0.2);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .stat-card .label {
-            color: #aaa;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-        
-        .stat-card .value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #3694fc;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .control-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .control-group label {
-            font-size: 13px;
-            color: #aaa;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        input[type="text"],
-        select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(54, 169, 252, 0.2);
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: #fff;
-            font-size: 13px;
-            min-width: 150px;
-        }
-        
-        input[type="text"]:focus,
-        select:focus {
-            outline: none;
-            border-color: #3694fc;
-            background: rgba(54, 169, 252, 0.1);
-        }
-        
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 250px;
-            gap: 20px;
-        }
-        
-        .main-table {
-            min-height: 400px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: linear-gradient(135deg, rgba(26, 26, 34, 0.5) 0%, rgba(36, 36, 47, 0.5) 100%);
-            border: 1px solid rgba(54, 169, 252, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        thead {
-            background: rgba(54, 169, 252, 0.1);
-            border-bottom: 1px solid rgba(54, 169, 252, 0.2);
-        }
-        
-        th {
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #3694fc;
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        th:hover { background: rgba(54, 169, 252, 0.15); }
-        
-        td {
-            padding: 12px;
-            font-size: 13px;
-            border-bottom: 1px solid rgba(54, 169, 252, 0.05);
-        }
-        
-        tbody tr:hover {
-            background: rgba(54, 169, 252, 0.05);
-        }
-        
-        .account-group-header {
-            background: rgba(97, 0, 255, 0.1);
-            font-weight: 600;
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .account-group-header:hover {
-            background: rgba(97, 0, 255, 0.15);
-        }
-        
-        .toggle-icon { margin-right: 8px; }
-        
-        .account-group-header td:first-child::before {
-            content: "▼ ";
-            color: #6100FF;
-            margin-right: 5px;
-        }
-        
-        .account-group-header.collapsed td:first-child::before {
-            content: "▶ ";
-        }
-        
-        .stage-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 11px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .stage-0, .stage-1 { background: #3694fc; color: #fff; }
-        .stage-2, .stage-3 { background: #ffc107; color: #000; }
-        .stage-4 { background: #6100FF; color: #fff; }
-        .stage-5 { background: #36EAD0; color: #000; }
-        
-        .acd-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 11px;
-            white-space: nowrap;
-        }
-        
-        .acd-cisco { background: #3694fc; color: #fff; }
-        .acd-genesys { background: #6100FF; color: #fff; }
-        .acd-avaya { background: #36EAD0; color: #000; }
-        .acd-amazon { background: #ff5b8a; color: #fff; }
-        .acd-ms { background: #00a4ef; color: #fff; }
-        .acd-nice { background: #6100FF; color: #fff; }
-        .acd-default { background: #666; color: #fff; }
-        
-        .fedra mp-badge {
-            display: inline-block;
-            background: #6100FF;
-            color: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .sidebar-section {
-            background: linear-gradient(135deg, rgba(97, 0, 255, 0.1) 0%, rgba(54, 169, 252, 0.05) 100%);
-            border: 1px solid rgba(54, 169, 252, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-        }
-        
-        .sidebar-section h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #3694fc;
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(54, 169, 252, 0.1);
-        }
-        
-        .sidebar-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            font-size: 12px;
-            border-bottom: 1px solid rgba(54, 169, 252, 0.05);
-        }
-        
-        .sidebar-item:last-child { border-bottom: none; }
-        
-        .sidebar-label { color: #aaa; }
-        .sidebar-value { color: #3694fc; font-weight: 600; }
-        .sidebar-acv { color: #36EAD0; font-size: 11px; }
-        
-        a.sf-link {
-            color: #3694fc;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        
-        a.sf-link:hover { text-decoration: underline; }
-        
-        .logo {
-            font-size: 14px;
-            font-weight: 700;
-            color: #3694fc;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-            .controls { flex-direction: column; }
-            .stats-bar { grid-template-columns: 1fr; }
-            .sidebar { display: grid; grid-template-columns: repeat(2, 1fr); }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eHub Pipeline Dashboard</title>
+<style>
+  :root {
+    --blue: #3694fc;
+    --charcoal: #21212b;
+    --indigo: #6100FF;
+    --teal: #36EAD0;
+    --coral: #FF5B8A;
+    --bg: #16161f;
+    --card: #21212b;
+    --card2: #2a2a38;
+    --border: #3a3a4e;
+    --text: #e8e8f0;
+    --muted: #8888aa;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --purple: #a855f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+
+  #pw-gate {
+    position: fixed; inset: 0; background: var(--charcoal); z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pw-card {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px 48px; text-align: center; max-width: 420px; width: 90%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+  }
+  .pw-logo { font-size: 28px; font-weight: 800; color: var(--blue); letter-spacing: -0.5px; margin-bottom: 8px; }
+  .pw-subtitle { color: var(--muted); margin-bottom: 32px; font-size: 13px; }
+  .pw-card h2 { font-size: 18px; margin-bottom: 20px; color: var(--text); }
+  .pw-input {
+    width: 100%; padding: 12px 16px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    font-size: 15px; margin-bottom: 16px; outline: none; transition: border-color 0.2s;
+  }
+  .pw-input:focus { border-color: var(--blue); }
+  .pw-btn {
+    width: 100%; padding: 12px; border-radius: 8px; border: none;
+    background: var(--blue); color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .pw-btn:hover { opacity: 0.88; }
+  .pw-error { color: var(--coral); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+  #app { display: none; min-height: 100vh; }
+  .topbar {
+    background: var(--charcoal); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo { font-size: 20px; font-weight: 800; color: var(--blue); }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .topbar-built { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  .stats-bar {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    padding: 16px 24px; background: var(--card); border-bottom: 1px solid var(--border);
+  }
+  .stat-card {
+    background: var(--card2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 20px; display: flex; flex-direction: column; gap: 2px; min-width: 140px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--blue); }
+
+  .main-layout { display: flex; }
+  .sidebar {
+    width: 260px; min-width: 260px; background: var(--card); border-right: 1px solid var(--border);
+    padding: 20px; position: sticky; top: 57px; height: calc(100vh - 57px); overflow-y: auto;
+  }
+  .sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); margin-bottom: 10px; margin-top: 20px; }
+  .sidebar h3:first-child { margin-top: 0; }
+  .sb-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+  .sb-row:hover { background: var(--card2); }
+  .sb-label { font-size: 13px; flex: 1; }
+  .sb-meta { font-size: 11px; color: var(--muted); text-align: right; }
+  .sb-count { font-weight: 600; color: var(--text); }
+  .sb-acv { color: var(--muted); font-size: 11px; }
+
+  .content { flex: 1; padding: 20px 24px; overflow-x: auto; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
+  .filters input, .filters select {
+    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); font-size: 13px; outline: none;
+  }
+  .filters input { min-width: 220px; }
+  .filters input:focus, .filters select:focus { border-color: var(--blue); }
+  .filter-count { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .tbl-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--card); padding: 10px 12px; text-align: left;
+    border-bottom: 2px solid var(--border); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--muted); white-space: nowrap; cursor: pointer;
+    user-select: none; position: sticky; top: 57px;
+  }
+  th:hover { color: var(--text); }
+  th.sort-asc::after { content: ' ▲'; color: var(--blue); }
+  th.sort-desc::after { content: ' ▼'; color: var(--blue); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: rgba(54,148,252,0.04); }
+
+  .acct-row { background: var(--card2) !important; cursor: pointer; }
+  .acct-name { font-weight: 700; font-size: 13px; }
+  .acct-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .toggle-icon { margin-right: 8px; color: var(--muted); font-size: 11px; }
+  .deal-row td:first-child { padding-left: 32px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .stage-0, .stage-1 { background: rgba(54,148,252,0.18); color: var(--blue); }
+  .stage-2, .stage-3 { background: rgba(245,158,11,0.18); color: #f59e0b; }
+  .stage-4 { background: rgba(97,0,255,0.18); color: #a855f7; }
+  .stage-5 { background: rgba(34,197,94,0.18); color: var(--green); }
+  .fedramp-yes { background: rgba(168,85,247,0.2); color: #c084fc; }
+
+  .acd-pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .acd-genesys { background: rgba(255,91,138,0.18); color: #ff8fab; }
+  .acd-cisco { background: rgba(54,148,252,0.18); color: var(--blue); }
+  .acd-avaya { background: rgba(54,234,208,0.18); color: var(--teal); }
+  .acd-amazon { background: rgba(245,158,11,0.18); color: #fbbf24; }
+  .acd-msteams { background: rgba(97,0,255,0.2); color: #a78bfa; }
+  .acd-nice { background: rgba(34,197,94,0.18); color: var(--green); }
+  .acd-other { background: rgba(136,136,170,0.18); color: var(--muted); }
+
+  a.opp-link { color: var(--text); text-decoration: none; }
+  a.opp-link:hover { color: var(--blue); text-decoration: underline; }
+  .acv-cell { text-align: right; font-weight: 600; white-space: nowrap; }
+  .acct-acv { font-weight: 700; color: var(--blue); }
+  .acv-native { font-size: 10px; color: var(--muted); font-weight: 400; }
+</style>
 </head>
 <body>
-    <div class="password-gate" id="passwordGate">
-        <div class="password-card">
-            <div class="logo">NiCE</div>
-            <h1>eHub Pipeline</h1>
-            <p>Enter access key</p>
-            <input type="password" id="passwordInput" placeholder="Access key">
-            <button onclick="checkPassword()">Unlock</button>
-            <div class="error" id="errorMsg"></div>
-        </div>
+
+<div id="pw-gate">
+  <div class="pw-card">
+    <div class="pw-logo">NiCE</div>
+    <div class="pw-subtitle">CXone | eHub Pipeline Intelligence</div>
+    <h2>Enter Dashboard Password</h2>
+    <input type="password" id="pw-input" class="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">Access Dashboard</button>
+    <div class="pw-error" id="pw-error"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">NiCE</div>
+    <div class="topbar-title">eHub Pipeline Dashboard — Real-Time Recording</div>
+    <div class="topbar-built">Built 2026-07-07 09:51 UTC</div>
+  </div>
+  <div class="stats-bar" id="stats-bar"></div>
+  <div class="main-layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content">
+      <div class="filters">
+        <input type="text" id="search" placeholder="Search opportunity or account..." oninput="applyFilters()">
+        <select id="f-stage" onchange="applyFilters()">
+          <option value="">All Stages</option>
+          <option value="0">0 · Prospecting</option>
+          <option value="1">1 · Identification / Qualification</option>
+          <option value="2">2 · Determining Problem</option>
+          <option value="3">3 · Aligning Benefits</option>
+          <option value="4">4 · Confirm Value</option>
+          <option value="5">5 · Proposal / Negotiation</option>
+        </select>
+        <select id="f-region" onchange="applyFilters()"></select>
+        <select id="f-acd" onchange="applyFilters()"></select>
+        <span class="filter-count" id="filter-count"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table id="main-table">
+          <thead>
+            <tr>
+              <th onclick="sortBy('name')" id="th-name">Opportunity</th>
+              <th onclick="sortBy('account')" id="th-account">Account</th>
+              <th onclick="sortBy('stage')" id="th-stage">Stage</th>
+              <th onclick="sortBy('closeDate')" id="th-closeDate">Close Date</th>
+              <th onclick="sortBy('acv')" id="th-acv" style="text-align:right">ACV (USD)</th>
+              <th onclick="sortBy('acd')" id="th-acd">ACD</th>
+              <th onclick="sortBy('region')" id="th-region">Region / Territory</th>
+              <th onclick="sortBy('owner')" id="th-owner">Owner</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
     </div>
-    
-    <div class="dashboard" id="dashboard" style="display: none; max-width: 1400px; margin: 0 auto;">
-        <div class="header">
-            <h1>eHub Real-Time Recording Pipeline</h1>
-            <p>Engagement Hub opportunities with Real-Time Recording SKUs</p>
-        </div>
-        
-        <div class="stats-bar">
-            <div class="stat-card">
-                <div class="label">Open Deals</div>
-                <div class="value" id="dealCount">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Accounts</div>
-                <div class="value" id="accountCount">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Total ACV</div>
-                <div class="value" id="totalAcv">$0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">FedRAMP</div>
-                <div class="value" id="fedra mpCount">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">ACDs</div>
-                <div class="value" id="acdCount">0</div>
-            </div>
-        </div>
-        
-        <div class="controls">
-            <div class="control-group">
-                <label>Search</label>
-                <input type="text" id="searchInput" placeholder="Account, opp name...">
-            </div>
-            <div class="control-group">
-                <label>Stage</label>
-                <select id="stageFilter">
-                    <option value="">All Stages</option>
-                    <option value="0">0 - Prospecting</option>
-                    <option value="1">1 - Identification</option>
-                    <option value="2">2 - Problem Discovery</option>
-                    <option value="3">3 - Presenting Solution</option>
-                    <option value="4">4 - Evaluating Contract</option>
-                    <option value="5">5 - Proposal/Negotiation</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>Region</label>
-                <select id="regionFilter">
-                    <option value="">All Regions</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>ACD</label>
-                <select id="acdFilter">
-                    <option value="">All ACDs</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="container">
-            <div class="main-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable('name')">Opportunity</th>
-                            <th onclick="sortTable('account_name')">Account</th>
-                            <th onclick="sortTable('stage')">Stage</th>
-                            <th onclick="sortTable('close_date')">Close Date</th>
-                            <th onclick="sortTable('usd_acv')">ACV</th>
-                            <th onclick="sortTable('acd')">ACD</th>
-                            <th onclick="sortTable('region')">Region</th>
-                            <th onclick="sortTable('owner')">Owner</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <h3>By Stage</h3>
-                    <div id="stageStats"></div>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3>By ACD</h3>
-                    <div id="acdStats"></div>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3>By Region</h3>
-                    <div id="regionStats"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        const DATA = [{"id": "006Hu00001XfPfOIAV", "name": "doTERRA Japan | CXone OPEN | 50", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-03-26", "account_name": "doTERRA CPTG Essential Oils Japan Limited Company", "parent_account": "DOTERRA CPTG ESSENTIAL OILS JAPAN LLC", "owner": "Junki Kawasaki", "region": "International", "territory": "Japan", "usd_acv": 94601.37, "acd": "Avaya", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00000O9QGrIAN", "name": "NATIONAL GRID | Amendment | Interaction Hub Migrated Calls Pivot PBP $0 Dollar", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2029-01-05", "account_name": "NATIONAL GRID USA SERVICE COMPANY INC", "parent_account": "NATIONAL GRID", "owner": "Dave Smith", "region": "Americas", "territory": "Industrial and Infrastructure", "usd_acv": 1.92, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00000lMnlNIAS", "name": "WIPRO:  Healthplan Services - CXone Multi-ACD", "stage": 0, "stage_name": "0 - Prospecting", "close_date": "2024-12-20", "account_name": "Wipro - Enterprise", "parent_account": "WIPRO LIMITED", "owner": "Robert Maze", "region": "Americas", "territory": "Global BPO", "usd_acv": 2926800.84, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui0000188WdVIAU", "name": "NATIONAL GRID USA SERVICE COMPANY INC |  Amendment  | Remove Evoke Consulting for QM", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2028-01-07", "account_name": "NATIONAL GRID USA SERVICE COMPANY INC", "parent_account": "NATIONAL GRID", "owner": "Dave Smith", "region": "Americas", "territory": "Industrial and Infrastructure", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001G5AORIA3", "name": "Zurich Life Insurance | NTTMA | CXone Multi ACD Recording + Interaction Analytics 200", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-02-18", "account_name": "Zurich Insurance Company Ltd", "parent_account": "ZURICH INSURANCE GROUP", "owner": "Ritsuko Iida", "region": "International", "territory": "Japan", "usd_acv": 144900.0, "acd": "Amazon Connect", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001I9h65IAB", "name": "KANSAS TURNPIKE AUTHORITY |  Amendment  | Multi-ACD", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-01-29", "account_name": "KANSAS TURNPIKE AUTHORITY", "parent_account": "Kansas Turnpike Authority", "owner": "Collin Alexander", "region": "Americas", "territory": null, "usd_acv": 75120.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001IeBzZIAV", "name": "ANZ NCCR CXone | ANZ", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2027-01-08", "account_name": "ANZ NCCR CXone", "parent_account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Aaron Cronin", "region": "International", "territory": "ANZ - 1", "usd_acv": -26.3, "acd": "", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001JJ6sfIAD", "name": "NATIONAL GRID | CXone Desktop Disco | Data Share Connection & Data Access", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2028-01-07", "account_name": "NATIONAL GRID USA SERVICE COMPANY INC", "parent_account": "NATIONAL GRID", "owner": "Dave Smith", "region": "Americas", "territory": "Industrial and Infrastructure", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001LDEADIA5", "name": "City of Dallas - Dallas Airport System | Carahsoft | Call Recording | 10", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-09-30", "account_name": "City of Dallas", "parent_account": "CITY OF DALLAS", "owner": "Rob Colson", "region": "Americas", "territory": "SLED West", "usd_acv": 26436.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001T4W06IAF", "name": "TD BANK |  Amendment  | 2025-06-17", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-01-15", "account_name": "TD BANK", "parent_account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "region": "Americas", "territory": "Canada", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001V6DJaIAN", "name": "ZIP Co | Quality Management | TTEC | 80 agents", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2027-04-15", "account_name": "ZipCo", "parent_account": "ZIP CO LIMITED", "owner": "Jarrah Sladek", "region": "International", "territory": "ANZ - 2", "usd_acv": 49554.6, "acd": "Amazon Connect", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001Vocu9IAB", "name": "THE TORONTO-DOMINION BANK |  Amendment  | QMA Additional Language", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-02-19", "account_name": "THE TORONTO-DOMINION BANK US WEST", "parent_account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "region": "Americas", "territory": "Canada", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001WRZhuIAH", "name": "HCTRA | CXone | Engagement Hub for Cloud Recording | 1000", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-10-28", "account_name": "Harris County Toll Road Authority", "parent_account": "Harris County Toll Road Authority", "owner": "Rob Colson", "region": "Americas", "territory": "SLED West", "usd_acv": 1783200.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001ZQhsfIAD", "name": "ANZ |  Amendment  | Interactions Hub", "stage": 5, "stage_name": "5 - Proposal / Negotiation", "close_date": "2025-08-14", "account_name": "ANZ", "parent_account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Callum Docherty", "region": "International", "territory": "ANZ - 1", "usd_acv": 3.88, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001bo9jpIAA", "name": "DESJARDINS Group PRODUCTION |  Amendment  | Engagement Hub for Teams for 2100", "stage": 5, "stage_name": "5 - Proposal / Negotiation", "close_date": "2026-11-20", "account_name": "GROUPE TECHNOLOGIES DESJARDINS INC. PRODUCTION ACCOUNT", "parent_account": "FEDERATION DES CAISSES DESJARDINS DU QUEBEC", "owner": "Ian Gillman", "region": "Americas", "territory": "Canada", "usd_acv": 340272.04, "acd": "MS Teams", "is_ms_teams": true, "is_fedra_mp": false}, {"id": "006Ui00001dXtlAIAS", "name": "Xplor Technologies | IEX & Engagement Hub | 250 | Route101 (CONTRACT EXPIRY MARCH 2027)", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2027-02-01", "account_name": "Xplor Technologies UK", "parent_account": "AI SKY UK NEWCO LIMITED", "owner": "Jonny Brooks", "region": "International", "territory": "UK&I - 5", "usd_acv": 263641.99, "acd": "Amazon Connect", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001fQFUjIAO", "name": "L.A. CARE HEALTH PLAN - ENTERPRISE |  Amendment  | CXone + Cognigy + Pindrop", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-19", "account_name": "L.A. CARE HEALTH PLAN - ENTERPRISE", "parent_account": "L. A. CARE HEALTH PLAN", "owner": "Vanessa Crook", "region": "Americas", "territory": "Enterprise West", "usd_acv": 3680861.64, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001j53yvIAA", "name": "INSURANCE AUSTRALIA GROUP |  Amendment  | CXone Engagement Hub - Cisco ACD - 4000 Users", "stage": 5, "stage_name": "5 - Proposal / Negotiation", "close_date": "2027-07-15", "account_name": "INSURANCE AUSTRALIA GROUP", "parent_account": "INSURANCE AUSTRALIA GROUP LIMITED", "owner": "Roger McCarthy", "region": "International", "territory": "ANZ - 1", "usd_acv": 293732.21, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001jeabwIAA", "name": "TOKAI Communications | CTC | Japan | Multi ACD | 200", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2027-02-26", "account_name": "TOKAI Communications Corporation", "parent_account": "TOKAI HOLDINGS CORPORATION", "owner": "Yuka Itano", "region": "International", "territory": "Japan", "usd_acv": 70509.67, "acd": "Avaya", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001k0CixIAE", "name": "NATIONAL GRID PM Desktop Discovery Rebill Reset June to Sep Start NO New ACV", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2028-01-07", "account_name": "NATIONAL GRID USA SERVICE COMPANY INC", "parent_account": "NATIONAL GRID", "owner": "Dave Smith", "region": "Americas", "territory": "Industrial and Infrastructure", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001nOlSVIA0", "name": "BNPP - Engage recording for Teams 2000 users", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-20", "account_name": "BNP PARIBAS SA - FRANCE", "parent_account": "BNP PARIBAS", "owner": "Benoit Richard", "region": "International", "territory": "France", "usd_acv": 376836.0, "acd": "MS Teams", "is_ms_teams": true, "is_fedra_mp": false}, {"id": "006Ui00001rmbnpIAA", "name": "Verse-AI- CXone WFM", "stage": 0, "stage_name": "0 - Prospecting", "close_date": "2026-07-01", "account_name": "NiCE Verse-AI", "parent_account": "", "owner": "Irfan Khan Mohammed", "region": "Americas", "territory": "Africa & Israel", "usd_acv": 0.0, "acd": "", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001xsvGYIAY", "name": "13 Cabs - A2B | Australia | Optus | CXone | 150", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-26", "account_name": "13cabs", "parent_account": "COMFORTDELGRO CALL CENTRE", "owner": "Jarrah Sladek", "region": null, "territory": "ANZ - 2", "usd_acv": 121985.27, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00001y1RxaIAE", "name": "THE TORONTO-DOMINION BANK US WEST |  Amendment  | 2025-12-19", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-05-14", "account_name": "THE TORONTO-DOMINION BANK US WEST", "parent_account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "region": "Americas", "territory": "Canada", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui000020yNITIA2", "name": "SAFE Federal Credit Union | Multi-ACD, WFM", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-09", "account_name": "SAFE Federal Credit Union", "parent_account": "Safe Federal Credit Union", "owner": "Andrew Amoth", "region": "Americas", "territory": "SMB Verticals", "usd_acv": 29922.24, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui000022jgLtIAI", "name": "VIDEOTRON LTD. |  Amendment  | Interactions Hub - Verint Recording Replacement", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-09-18", "account_name": "VIDEOTRON LTD.", "parent_account": "Les Placements P\u00e9ladeau Inc", "owner": "Steve Rapp", "region": "Americas", "territory": "Canada", "usd_acv": 329645.37, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui000022lZ6eIAE", "name": "ANZ NCCR DEV |  Amendment  | AWS Private Link 2026 Renewal", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-09-24", "account_name": "ANZ NCCR DEV", "parent_account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Callum Docherty", "region": "International", "territory": "ANZ - 1", "usd_acv": 0.0, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui000023czMHIAY", "name": "LIBERTY UTILITIES CONTACT CENTER |  CXone Recording for MS Teams", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-11-04", "account_name": "LIBERTY UTILITIES CONTACT CENTER", "parent_account": "Algonquin Power & Utilities Corp", "owner": "Robert Mahoney", "region": "Americas", "territory": null, "usd_acv": 121421.94, "acd": "MS Teams", "is_ms_teams": true, "is_fedra_mp": false}, {"id": "006Ui000027CfGuIAK", "name": "LOWE\u2019S COMPANIES, INC. | Cognigy AI", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-06-10", "account_name": "LOWE\u2019S COMPANIES, INC.", "parent_account": "LOWE'S COMPANIES, INC.", "owner": "Tony Hawkins", "region": "Americas", "territory": "Travel & Leisure", "usd_acv": 1603202.4, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002CgkrKIAR", "name": "LOWE\u2019S COMPANIES, INC. |  Amendment  | QM, IA, and AR", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-07-18", "account_name": "LOWE\u2019S COMPANIES, INC.", "parent_account": "LOWE'S COMPANIES, INC.", "owner": "Tony Hawkins", "region": "Americas", "territory": "Travel & Leisure", "usd_acv": 1931520.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002Do2CgIAJ", "name": "METLIFE INSURANCE K.K. DEV |  Amendment  | 2026-03-17", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-12-15", "account_name": "METLIFE INSURANCE K.K. DEV", "parent_account": "METLIFE, INC.", "owner": "Yutaka Homma", "region": "International", "territory": "Japan", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002E9s6YIAR", "name": "The ESP Group | Engagement Hub + QMA | 250", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-09", "account_name": "ESP Group", "parent_account": "ESP SYSTEX HOLDINGS LIMITED", "owner": "Josh Chapman", "region": "International", "territory": "UK&I - 4", "usd_acv": 142186.05, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002FD2WzIAL", "name": "ANZ NCCR QA |  Amendment  | 2026-03-23", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-02-26", "account_name": "ANZ NCCR QA", "parent_account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Chris Grimshaw", "region": "International", "territory": "ANZ - 1", "usd_acv": 0.0, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002Hllf1IAB", "name": "THE TORONTO-DOMINION BANK US WEST |  Amendment  | 2026-04-06", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-02-19", "account_name": "THE TORONTO-DOMINION BANK US WEST", "parent_account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "region": "Americas", "territory": "Canada", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002IDfMwIAL", "name": "INTEGRATED CARE 24 |  Amendment  | Integrations Hub", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-08-20", "account_name": "INTEGRATED CARE 24", "parent_account": "INTEGRATED CARE 24 LIMITED", "owner": "Adam Massingberd - Mundy", "region": "International", "territory": "UK&I - 4", "usd_acv": 1.29, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002IJ27dIAD", "name": "INTEGRATED CARE 24 |  Amendment  | 2026-04-09", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-09-22", "account_name": "INTEGRATED CARE 24", "parent_account": "INTEGRATED CARE 24 LIMITED", "owner": "Adam Massingberd - Mundy", "region": "International", "territory": "UK&I - 4", "usd_acv": 2.58, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002LZE6DIAX", "name": "VIDEOTRON |  Amendment  | Interactions Hub - Genesys", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-09-18", "account_name": "VIDEOTRON LTD.", "parent_account": "Les Placements P\u00e9ladeau Inc", "owner": "Steve Rapp", "region": "Americas", "territory": "Canada", "usd_acv": 1825523.62, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002LtZPqIAN", "name": "DSK Bank Bulgaria | Algotech | CXone | Migrate DSK to NiCE CXone eHub | 200", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-08-19", "account_name": "DSK Bank Bulgaria", "parent_account": "OTP Bank Nyrt.", "owner": "Stefan Jung", "region": "International", "territory": "DACH", "usd_acv": 92031.47, "acd": "", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002M2iKGIAZ", "name": "BMO - Moxie to CXone Migration - US Leasing LOB", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-10-30", "account_name": "Bank of Montreal - Canada - Enterprise", "parent_account": "BANK OF MONTREAL", "owner": "Tamber Figurski", "region": "Americas", "territory": "Canada", "usd_acv": 228514.44, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002O1VHTIA3", "name": "Engagement Hub", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-12-31", "account_name": "LINGA", "parent_account": "LINGA, INC", "owner": "William Hamilton", "region": "Americas", "territory": "Commercial East 4", "usd_acv": 329546.88, "acd": "MS Teams", "is_ms_teams": true, "is_fedra_mp": false}, {"id": "006Ui00002O23xRIAR", "name": "CHOICE HOTELS |  Amendment  | Transcription Options", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-06", "account_name": "CHOICE HOTELS", "parent_account": "CHOICE HOTELS INTERNATIONAL, INC.", "owner": "Kristee Blanciak", "region": "Americas", "territory": "Enterprise East", "usd_acv": 90914.64, "acd": "NICE CXone Mpower", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002O3P4jIAF", "name": "VRAD INC |  Amendment  | 2026-05-07", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-10-22", "account_name": "VRAD INC", "parent_account": "Radiology Partners Holdings, LLC", "owner": "Noa Nightingale", "region": "Americas", "territory": "Healthcare 3", "usd_acv": 99000.0, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002OwlcQIAR", "name": "Nutrien Australia | NUTRIEN US LLC", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-11-26", "account_name": "Nutrien Australia", "parent_account": "Nutrien Ltd.", "owner": "Cory Shields", "region": "Americas", "territory": "Commercial Central 4", "usd_acv": 36382.44, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002Rgj51IAB", "name": "METLIFE INSURANCE K.K. |  Amendment  | Expert", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-11-27", "account_name": "METLIFE INSURANCE K.K.", "parent_account": "METLIFE, INC.", "owner": "Ritsuko Iida", "region": "International", "territory": "Japan", "usd_acv": 480001.44, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002SDLv9IAH", "name": "METLIFE INSURANCE K.K. DEV |  Amendment  | 2026-05-28", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-11-27", "account_name": "METLIFE INSURANCE K.K. DEV", "parent_account": "METLIFE, INC.", "owner": "Ritsuko Iida", "region": "International", "territory": "Japan", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002SMHp5IAH", "name": "Cooper Health | Avant/CDW | CXone | 500", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-12-18", "account_name": "Cooper University Hospital", "parent_account": "The Cooper Health System A New Jersey Non-Profit Corporation", "owner": "David Cannone", "region": "Americas", "territory": "Healthcare 3", "usd_acv": 699622.44, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002SMKNAIA5", "name": "VRAD INC |  Amendment  | CXSuccess Premier", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-09-08", "account_name": "VRAD INC", "parent_account": "Radiology Partners Holdings, LLC", "owner": "Noa Nightingale", "region": "Americas", "territory": "Healthcare 3", "usd_acv": 138600.0, "acd": "Genesys", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002UmVX3IAN", "name": "SKIPTON BUILDING SOCIETY - UK |  Amendment  | 2026-06-10", "stage": 5, "stage_name": "5 - Proposal / Negotiation", "close_date": "2026-07-17", "account_name": "SKIPTON BUILDING SOCIETY - UK", "parent_account": "SKIPTON BUILDING SOCIETY", "owner": "Steven Lee", "region": "International", "territory": "UK&I - 3", "usd_acv": 3868.31, "acd": "MS Teams", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002WExnxIAD", "name": "U-Haul | Bridgepointe | CXone | Engagement Hub | 2,300", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-12-18", "account_name": "U-haul Co.", "parent_account": "AMERCO", "owner": "Luke Hostetter", "region": "Americas", "territory": "Enterprise West", "usd_acv": 403218.6, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002XfyaUIAR", "name": "METLIFE INSURANCE K.K. |  Amendment  | Teams Recording", "stage": 2, "stage_name": "2 - Determining Problem / Impact", "close_date": "2026-10-30", "account_name": "METLIFE INSURANCE K.K.", "parent_account": "METLIFE, INC.", "owner": "Ritsuko Iida", "region": "International", "territory": "Japan", "usd_acv": 84000.0, "acd": "MS Teams", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002Xg5AYIAZ", "name": "METLIFE INSURANCE K.K. DEV |  Amendment  | Teams Test", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-12-04", "account_name": "METLIFE INSURANCE K.K. DEV", "parent_account": "METLIFE, INC.", "owner": "Ritsuko Iida", "region": "International", "territory": "Japan", "usd_acv": 0.0, "acd": "MS Teams", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002Y2pmbIAB", "name": "NATIONAL GRID | Amendment | CXone ACD  58 Agent Service Desk", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2027-03-12", "account_name": "NATIONAL GRID USA SERVICE COMPANY INC", "parent_account": "NATIONAL GRID", "owner": "Dave Smith", "region": "Americas", "territory": "Industrial and Infrastructure", "usd_acv": 0.0, "acd": "Cisco Systems", "is_ms_teams": false, "is_fedra_mp": false}, {"id": "006Ui00002YbSryIAF", "name": "SWINTON INSURANCE |  Amendment  | Long Term to Short Term Storage", "stage": 1, "stage_name": "1 - Identification / Qualification", "close_date": "2026-08-28", "account_name": "SWINTON INSURANCE", "parent_account": "Venus Topco Limited", "owner": "Maxine Allard", "region": "International", "territory": "UK&I - 1", "usd_acv": 0.0, "acd": "UJET", "is_ms_teams": false, "is_fedra_mp": false}];
-        const TARGET_HASH = "0bfb1dbb009f33393aaecf5d1200f0d385131857335eea846225358486b37621";
-        
-        let allData = JSON.parse(DATA);
-        let filteredData = [...allData];
-        let sortCol = 'close_date';
-        let sortDesc = true;
-        let expandedAccounts = new Set();
-        
-        async function hashPassword(pwd) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(pwd);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-        
-        async function checkPassword() {
-            const pwd = document.getElementById('passwordInput').value;
-            const hash = await hashPassword(pwd);
-            const errorEl = document.getElementById('errorMsg');
-            
-            if (hash === TARGET_HASH) {
-                sessionStorage.setItem('dashboardUnlocked', 'true');
-                document.getElementById('passwordGate').classList.add('hidden');
-                document.getElementById('dashboard').style.display = 'block';
-                initDashboard();
-            } else {
-                errorEl.textContent = 'Invalid access key';
-                setTimeout(() => { errorEl.textContent = ''; }, 3000);
-            }
-        }
-        
-        function initDashboard() {
-            populateFilters();
-            updateStats();
-            renderTable();
-            
-            document.getElementById('searchInput').addEventListener('input', applyFilters);
-            document.getElementById('stageFilter').addEventListener('change', applyFilters);
-            document.getElementById('regionFilter').addEventListener('change', applyFilters);
-            document.getElementById('acdFilter').addEventListener('change', applyFilters);
-        }
-        
-        function populateFilters() {
-            const regions = [...new Set(allData.map(o => o.region).filter(Boolean))].sort();
-            const acds = [...new Set(allData.map(o => o.acd).filter(Boolean))].sort();
-            
-            const regionSel = document.getElementById('regionFilter');
-            regions.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r;
-                opt.text = r;
-                regionSel.appendChild(opt);
-            });
-            
-            const acdSel = document.getElementById('acdFilter');
-            acds.forEach(a => {
-                const opt = document.createElement('option');
-                opt.value = a;
-                opt.text = a;
-                acdSel.appendChild(opt);
-            });
-        }
-        
-        function applyFilters() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const stage = document.getElementById('stageFilter').value;
-            const region = document.getElementById('regionFilter').value;
-            const acd = document.getElementById('acdFilter').value;
-            
-            filteredData = allData.filter(o => {
-                const matchesSearch = !search || o.name.toLowerCase().includes(search) || 
-                                      o.account_name.toLowerCase().includes(search);
-                const matchesStage = !stage || o.stage.toString() === stage;
-                const matchesRegion = !region || o.region === region;
-                const matchesAcd = !acd || o.acd === acd;
-                return matchesSearch && matchesStage && matchesRegion && matchesAcd;
-            });
-            
-            sortData();
-            renderTable();
-            updateStats();
-        }
-        
-        function sortData() {
-            filteredData.sort((a, b) => {
-                let aVal = a[sortCol];
-                let bVal = b[sortCol];
-                
-                if (typeof aVal === 'number') {
-                    return sortDesc ? bVal - aVal : aVal - bVal;
-                }
-                
-                aVal = (aVal || '').toString().toLowerCase();
-                bVal = (bVal || '').toString().toLowerCase();
-                
-                if (sortDesc) return bVal.localeCompare(aVal);
-                return aVal.localeCompare(bVal);
-            });
-        }
-        
-        function sortTable(col) {
-            if (sortCol === col) {
-                sortDesc = !sortDesc;
-            } else {
-                sortCol = col;
-                sortDesc = true;
-            }
-            sortData();
-            renderTable();
-        }
-        
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            
-            const grouped = {};
-            filteredData.forEach(o => {
-                if (!grouped[o.account_name]) grouped[o.account_name] = [];
-                grouped[o.account_name].push(o);
-            });
-            
-            Object.keys(grouped).sort().forEach(acct => {
-                const opps = grouped[acct];
-                const acctTotal = opps.reduce((sum, o) => sum + o.usd_acv, 0);
-                const acds = [...new Set(opps.map(o => o.acd))];
-                const isExpanded = expandedAccounts.has(acct);
-                
-                // Account header row
-                const headerRow = document.createElement('tr');
-                headerRow.className = `account-group-header ${isExpanded ? '' : 'collapsed'}`;
-                headerRow.onclick = () => toggleAccount(acct, headerRow);
-                headerRow.innerHTML = `
-                    <td colspan="8">
-                        ${acct} (${opps.length} deals) · $${acctTotal.toLocaleString('en-US', {maximumFractionDigits: 0})}
-                        ${acds.map(a => a ? `<span class="acd-badge acd-${getAcdClass(a)}">${a}</span>` : '').join('')}
-                    </td>
-                `;
-                tbody.appendChild(headerRow);
-                
-                // Opportunity rows (hidden by default)
-                opps.forEach(o => {
-                    const row = document.createElement('tr');
-                    row.className = isExpanded ? '' : 'hidden';
-                    row.style.display = isExpanded ? '' : 'none';
-                    row.innerHTML = `
-                        <td>
-                            <a class="sf-link" href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/${o.id}/view" target="_blank">
-                                ${o.name}
-                            </a>
-                        </td>
-                        <td>${o.parent_account || o.account_name}</td>
-                        <td><span class="stage-badge stage-${o.stage}">${o.stage}</span></td>
-                        <td>${o.close_date}</td>
-                        <td>$${o.usd_acv.toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
-                        <td><span class="acd-badge acd-${getAcdClass(o.acd)}">${o.acd || 'TBD'}</span>${o.is_fedra_mp ? ' <span class="fedra mp-badge">FEDRA MP</span>' : ''}</td>
-                        <td>${o.region}</td>
-                        <td>${o.owner}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            });
-        }
-        
-        function toggleAccount(acct, headerRow) {
-            if (expandedAccounts.has(acct)) {
-                expandedAccounts.delete(acct);
-                headerRow.classList.add('collapsed');
-                Array.from(headerRow.parentNode.children).forEach((row, idx) => {
-                    if (row === headerRow) return;
-                    const nextHeader = row.querySelector('.account-group-header');
-                    if (nextHeader && nextHeader !== headerRow) return;
-                    row.style.display = 'none';
-                });
-            } else {
-                expandedAccounts.add(acct);
-                headerRow.classList.remove('collapsed');
-                let show = false;
-                Array.from(headerRow.parentNode.children).forEach((row, idx) => {
-                    if (row === headerRow) {
-                        show = true;
-                        return;
-                    }
-                    if (row.querySelector('.account-group-header') && row !== headerRow) {
-                        show = false;
-                        return;
-                    }
-                    if (show) row.style.display = '';
-                });
-            }
-        }
-        
-        function getAcdClass(acd) {
-            if (!acd) return 'default';
-            if (acd.includes('Cisco')) return 'cisco';
-            if (acd.includes('Genesys')) return 'genesys';
-            if (acd.includes('Avaya')) return 'avaya';
-            if (acd.includes('Amazon')) return 'amazon';
-            if (acd.includes('MS')) return 'ms';
-            if (acd.includes('NICE')) return 'nice';
-            return 'default';
-        }
-        
-        function updateStats() {
-            const stages = {};
-            const acds = {};
-            const regions = {};
-            
-            filteredData.forEach(o => {
-                stages[o.stage] = (stages[o.stage] || {count: 0, acv: 0});
-                stages[o.stage].count++;
-                stages[o.stage].acv += o.usd_acv;
-                
-                if (o.acd) {
-                    acds[o.acd] = (acds[o.acd] || {count: 0, acv: 0});
-                    acds[o.acd].count++;
-                    acds[o.acd].acv += o.usd_acv;
-                }
-                
-                if (o.region) {
-                    regions[o.region] = (regions[o.region] || 0);
-                    regions[o.region]++;
-                }
-            });
-            
-            const acctCount = new Set(filteredData.map(o => o.account_name)).size;
-            const totalAcv = filteredData.reduce((sum, o) => sum + o.usd_acv, 0);
-            const fedraCount = filteredData.filter(o => o.is_fedra_mp).length;
-            const acdCount = new Set(filteredData.map(o => o.acd).filter(Boolean)).size;
-            
-            document.getElementById('dealCount').textContent = filteredData.length;
-            document.getElementById('accountCount').textContent = acctCount;
-            document.getElementById('totalAcv').textContent = '$' + totalAcv.toLocaleString('en-US', {maximumFractionDigits: 0});
-            document.getElementById('fedra mpCount').textContent = fedraCount;
-            document.getElementById('acdCount').textContent = acdCount;
-            
-            // Stage stats
-            const stageStatsHtml = Object.keys(stages).sort((a, b) => a - b).map(s => {
-                const data = stages[s];
-                return `<div class="sidebar-item"><span class="sidebar-label">Stage ${s}</span><span><span class="sidebar-value">${data.count}</span> / <span class="sidebar-acv">$${(data.acv/1e6).toFixed(1)}M</span></span></div>`;
-            }).join('');
-            document.getElementById('stageStats').innerHTML = stageStatsHtml;
-            
-            // ACD stats
-            const acdStatsHtml = Object.keys(acds).sort().map(a => {
-                const data = acds[a];
-                return `<div class="sidebar-item"><span class="sidebar-label">${a}</span><span><span class="sidebar-value">${data.count}</span> / <span class="sidebar-acv">$${(data.acv/1e6).toFixed(1)}M</span></span></div>`;
-            }).join('');
-            document.getElementById('acdStats').innerHTML = acdStatsHtml;
-            
-            // Region stats
-            const regionStatsHtml = Object.keys(regions).sort().map(r => {
-                return `<div class="sidebar-item"><span class="sidebar-label">${r}</span><span class="sidebar-value">${regions[r]}</span></div>`;
-            }).join('');
-            document.getElementById('regionStats').innerHTML = regionStatsHtml;
-        }
-        
-        // Check if already unlocked
-        if (sessionStorage.getItem('dashboardUnlocked')) {
-            document.getElementById('passwordGate').classList.add('hidden');
-            document.getElementById('dashboard').style.display = 'block';
-            initDashboard();
-        }
-        
-        // Allow Enter key to submit
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !sessionStorage.getItem('dashboardUnlocked')) {
-                checkPassword();
-            }
-        });
-    </script>
+  </div>
+</div>
+
+<script>
+const HASH = '0bfb1dbb009f33393aaecf5d1200f0d385131857335eea846225358486b37621';
+const ALL_OPPS = [{"id": "006Hu00001V2oRpIAJ", "name": "Hyundai Capital America - Amendment - Agnostic Copilot", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2027-04-16", "acv": 115200.84, "nativeAcv": 115200.84, "currency": "USD", "account": "HYUNDAI MOTOR COMPANY", "owner": "Shaun Musil", "acd": "Cisco Systems", "region": "International / Enterprise West", "fedramp": "No"}, {"id": "006Hu00001V3FybIAF", "name": "Banner Life -CXone Open-C1", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-12-18", "acv": 424572, "nativeAcv": 424572, "currency": "USD", "account": "LEGAL & GENERAL GROUP PLC", "owner": "Steve Ledbetter", "acd": "Avaya", "region": "Americas / Commercial East 3", "fedramp": "No"}, {"id": "006Hu00001XfPfOIAV", "name": "doTERRA Japan | CXone OPEN | 50", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-03-26", "acv": 94601.37, "nativeAcv": 15170400, "currency": "JPY", "account": "DOTERRA CPTG ESSENTIAL OILS JAPAN LLC", "owner": "Junki Kawasaki", "acd": "Avaya", "region": "International / Japan", "fedramp": "No"}, {"id": "006Hu00001XgT4mIAF", "name": "Connecticut's Department of Administrative Services | Carahsoft | CXone | 125", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2027-02-10", "acv": 126876, "nativeAcv": 126876, "currency": "USD", "account": "State of Connecticut", "owner": "Paul Jamieson", "acd": "Genesys", "region": "Americas / SLED East", "fedramp": "No"}, {"id": "006Ui00000O9QGrIAN", "name": "NATIONAL GRID | Amendment | Interaction Hub Migrated Calls Pivot PBP $0 Dollar", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2029-01-05", "acv": 1.92, "nativeAcv": 1.92, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00000Ot8NKIAZ", "name": "US Census | Recording, | FedRAMP for Multi-ACD | 500 | 500k ACV I FedRamp Multi ACD Availability", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-12-15", "acv": 345996.96, "nativeAcv": 345996.96, "currency": "USD", "account": "United States Census Bureau", "owner": "Ben Martinez", "acd": "Cisco Systems", "region": "Americas / Federal", "fedramp": "Yes"}, {"id": "006Ui00000ceLhOIAU", "name": "UPMC Systems | Multi-ACD", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-11-20", "acv": 3058759.32, "nativeAcv": 3058759.32, "currency": "USD", "account": "UNIVERSITY OF PITSBURGH MEDICAL CENTER (UPMC)", "owner": "Kyler Wilson", "acd": "Avaya", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00000lMnlNIAS", "name": "WIPRO:  Healthplan Services - CXone Multi-ACD", "stage": "0", "stageName": "0 - Prospecting", "stageShort": "Prospecting", "closeDate": "2024-12-20", "acv": 2926800.84, "nativeAcv": 2926800.84, "currency": "USD", "account": "WIPRO LIMITED", "owner": "Robert Maze", "acd": "Cisco Systems", "region": "Americas / Global BPO", "fedramp": "No"}, {"id": "006Ui00000xaZgQIAU", "name": "TWC | C1 Referral | CXone | MultiACD | 864 users", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2028-12-25", "acv": 494679.48, "nativeAcv": 494679.48, "currency": "USD", "account": "State of Texas Workforce Commission", "owner": "Rob Colson", "acd": "Avaya", "region": "Americas / SLED West", "fedramp": "No"}, {"id": "006Ui0000188WdVIAU", "name": "NATIONAL GRID USA SERVICE COMPANY INC |  Amendment  | Remove Evoke Consulting for QM", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2028-01-07", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00001G5AORIA3", "name": "Zurich Life Insurance | NTTMA | CXone Multi ACD Recording + Interaction Analytics 200", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-02-18", "acv": 144900, "nativeAcv": 144900, "currency": "USD", "account": "ZURICH INSURANCE GROUP", "owner": "Ritsuko Iida", "acd": "Amazon Connect", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00001HpIVFIA3", "name": "ST. LUKE'S HEALTH SYSTEM |  Amendment  | Interactions Hub | ICS", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-09-10", "acv": 20400.84, "nativeAcv": 20400.84, "currency": "USD", "account": "St. Luke's Health System, Ltd.", "owner": "Ryan Black", "acd": "Avaya", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00001I9h65IAB", "name": "KANSAS TURNPIKE AUTHORITY |  Amendment  | Multi-ACD", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-01-29", "acv": 75120, "nativeAcv": 75120, "currency": "USD", "account": "Kansas Turnpike Authority", "owner": "Collin Alexander", "acd": "Cisco Systems", "region": "Americas", "fedramp": "No"}, {"id": "006Ui00001IeBzZIAV", "name": "ANZ NCCR CXone | ANZ", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2027-01-08", "acv": -26.3, "nativeAcv": -37.2, "currency": "AUD", "account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Aaron Cronin", "acd": "Unknown", "region": "International / ANZ - 1", "fedramp": "No"}, {"id": "006Ui00001JJ6sfIAD", "name": "NATIONAL GRID | CXone Desktop Disco | Data Share Connection & Data Access", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2028-01-07", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00001LDEADIA5", "name": "City of Dallas - Dallas Airport System | Carahsoft | Call Recording | 10", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-09-30", "acv": 26436, "nativeAcv": 26436, "currency": "USD", "account": "CITY OF DALLAS", "owner": "Rob Colson", "acd": "Cisco Systems", "region": "Americas / SLED West", "fedramp": "No"}, {"id": "006Ui00001ObHDFIA3", "name": "NATIONAL GRID | Amendment | Expert Knowledge Replacing Knowledge Owl", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-10-02", "acv": 508800, "nativeAcv": 508800, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00001T4W06IAF", "name": "TD BANK |  Amendment  | 2025-06-17", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-01-15", "acv": 0, "nativeAcv": 0, "currency": "CAD", "account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "acd": "Cisco Systems", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui00001V6DJaIAN", "name": "ZIP Co | Quality Management | TTEC | 80 agents", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2027-04-15", "acv": 49554.6, "nativeAcv": 49554.6, "currency": "USD", "account": "ZIP CO LIMITED", "owner": "Jarrah Sladek", "acd": "Amazon Connect", "region": "International / ANZ - 2", "fedramp": "No"}, {"id": "006Ui00001Vocu9IAB", "name": "THE TORONTO-DOMINION BANK |  Amendment  | QMA Additional Language", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-02-19", "acv": 0, "nativeAcv": 0, "currency": "CAD", "account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "acd": "Cisco Systems", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui00001WRZhuIAH", "name": "HCTRA | CXone | Engagement Hub for Cloud Recording | 1000", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-10-28", "acv": 1783200, "nativeAcv": 1783200, "currency": "USD", "account": "Harris County Toll Road Authority", "owner": "Rob Colson", "acd": "Cisco Systems", "region": "Americas / SLED West", "fedramp": "No"}, {"id": "006Ui00001ZQhsfIAD", "name": "ANZ |  Amendment  | Interactions Hub", "stage": "5", "stageName": "5 - Proposal / Negotiation", "stageShort": "Proposal / Negotiation", "closeDate": "2025-08-14", "acv": 3.88, "nativeAcv": 5.04, "currency": "AUD", "account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Callum Docherty", "acd": "Genesys", "region": "International / ANZ - 1", "fedramp": "No"}, {"id": "006Ui00001aFRVjIAO", "name": "ST. LUKE'S HEALTH SYSTEM |  Amendment  | Multi-ACD 200 Additional Users", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-09-10", "acv": 58027.2, "nativeAcv": 58027.2, "currency": "USD", "account": "St. Luke's Health System, Ltd.", "owner": "Ryan Black", "acd": "Avaya", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00001acN81IAE", "name": "IRON MOUNTAIN | Analytics Drive Quality | Verint Displacement | +2500 | Phase 1", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2027-01-15", "acv": 625200.84, "nativeAcv": 625200.84, "currency": "USD", "account": "IRON MOUNTAIN INC.", "owner": "James Lacouture", "acd": "Amazon Connect", "region": "Americas / Enterprise East", "fedramp": "No"}, {"id": "006Ui00001amlgvIAA", "name": "NESO | Engagement Hub | CR & QM - NORTHBOUND", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2027-09-23", "acv": 687487.84, "nativeAcv": 511842.26, "currency": "GBP", "account": "NATIONAL ENERGY SYSTEM OPERATOR LIMITED", "owner": "Sarah Cruickshanks", "acd": "MS Teams", "region": "International / UK&I - 5", "fedramp": "No"}, {"id": "006Ui00001bo9jpIAA", "name": "DESJARDINS Group PRODUCTION |  Amendment  | Engagement Hub for Teams for 2100", "stage": "5", "stageName": "5 - Proposal / Negotiation", "stageShort": "Proposal / Negotiation", "closeDate": "2026-11-20", "acv": 340272.04, "nativeAcv": 476028, "currency": "CAD", "account": "FEDERATION DES CAISSES DESJARDINS DU QUEBEC", "owner": "Ian Gillman", "acd": "MS Teams", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui00001dXtlAIAS", "name": "Xplor Technologies | IEX & Engagement Hub | 250 | Route101 (CONTRACT EXPIRY MARCH 2027)", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2027-02-01", "acv": 263641.99, "nativeAcv": 196284.36, "currency": "GBP", "account": "AI SKY UK NEWCO LIMITED", "owner": "Jonny Brooks", "acd": "Amazon Connect", "region": "International / UK&I - 5", "fedramp": "No"}, {"id": "006Ui00001fQFUjIAO", "name": "L.A. CARE HEALTH PLAN - ENTERPRISE |  Amendment  | CXone + Cognigy + Pindrop", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-19", "acv": 3680861.64, "nativeAcv": 3680861.64, "currency": "USD", "account": "L. A. CARE HEALTH PLAN", "owner": "Vanessa Crook", "acd": "Cisco Systems", "region": "Americas / Enterprise West", "fedramp": "No"}, {"id": "006Ui00001iBBHdIAO", "name": "Robert Bosch.com - Dremel.com | Cognigy", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-09-17", "acv": 136719, "nativeAcv": 136719, "currency": "USD", "account": "ROBERT BOSCH GmbH", "owner": "Rei Rivera III", "acd": "Avaya", "region": "Americas / Commercial West 2", "fedramp": "No"}, {"id": "006Ui00001j53yvIAA", "name": "INSURANCE AUSTRALIA GROUP |  Amendment  | CXone Engagement Hub - Cisco ACD - 4000 Users", "stage": "5", "stageName": "5 - Proposal / Negotiation", "stageShort": "Proposal / Negotiation", "closeDate": "2027-07-15", "acv": 293732.21, "nativeAcv": 415512.7, "currency": "AUD", "account": "INSURANCE AUSTRALIA GROUP LIMITED", "owner": "Roger McCarthy", "acd": "Cisco Systems", "region": "International / ANZ - 1", "fedramp": "No"}, {"id": "006Ui00001jZRZBIA4", "name": "Texas Mutual | CXone | Intelysis", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-12-18", "acv": 743601.6, "nativeAcv": 743601.6, "currency": "USD", "account": "Texas Mutual Insurance Company", "owner": "Jon Gray", "acd": "MS Teams", "region": "Americas / Commercial Central 4", "fedramp": "No"}, {"id": "006Ui00001jeabwIAA", "name": "TOKAI Communications | CTC | Japan | Multi ACD | 200", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2027-02-26", "acv": 70509.67, "nativeAcv": 11307024, "currency": "JPY", "account": "TOKAI HOLDINGS CORPORATION", "owner": "Yuka Itano", "acd": "Avaya", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00001k0CixIAE", "name": "NATIONAL GRID PM Desktop Discovery Rebill Reset June to Sep Start NO New ACV", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2028-01-07", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00001nOlSVIA0", "name": "BNPP - Engage recording for Teams 2000 users", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-20", "acv": 376836, "nativeAcv": 376836, "currency": "USD", "account": "BNP PARIBAS", "owner": "Benoit Richard", "acd": "MS Teams", "region": "International / France", "fedramp": "No"}, {"id": "006Ui00001rmbnpIAA", "name": "Verse-AI- CXone WFM", "stage": "0", "stageName": "0 - Prospecting", "stageShort": "Prospecting", "closeDate": "2026-07-01", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "NiCE Verse-AI", "owner": "Irfan Khan Mohammed", "acd": "Unknown", "region": "Americas / Africa & Israel", "fedramp": "No"}, {"id": "006Ui00001s6wXxIAI", "name": "NATIONAL GRID Agent Assist ~ Auto Summary Agnostic CoPilot  NOT FUNDED  Move Commitments from op 342254", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-08-27", "acv": 532005.16, "nativeAcv": 532005.16, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00001wuBOfIAM", "name": "NATIONAL GRID | Amendment | ConnectLingua 150,000 Monthly Commit $590K ACV", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-11-20", "acv": 500005.88, "nativeAcv": 500005.88, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00001xsvGYIAY", "name": "13 Cabs - A2B | Australia | Optus | CXone | 150", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-26", "acv": 121985.27, "nativeAcv": 172560, "currency": "AUD", "account": "COMFORTDELGRO CALL CENTRE", "owner": "Jarrah Sladek", "acd": "Cisco Systems", "region": "ANZ - 2", "fedramp": "No"}, {"id": "006Ui00001y1RxaIAE", "name": "THE TORONTO-DOMINION BANK US WEST |  Amendment  | 2025-12-19", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-05-14", "acv": 0, "nativeAcv": 0, "currency": "CAD", "account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "acd": "Cisco Systems", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui000020yNITIA2", "name": "SAFE Federal Credit Union | Multi-ACD, WFM", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-09", "acv": 29922.24, "nativeAcv": 29922.24, "currency": "USD", "account": "Safe Federal Credit Union", "owner": "Andrew Amoth", "acd": "Cisco Systems", "region": "Americas / SMB Verticals", "fedramp": "No"}, {"id": "006Ui000022jgLtIAI", "name": "VIDEOTRON LTD. |  Amendment  | Interactions Hub - Verint Recording Replacement", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-09-18", "acv": 329645.37, "nativeAcv": 461161.68, "currency": "CAD", "account": "Les Placements P\u00e9ladeau Inc", "owner": "Steve Rapp", "acd": "Genesys", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui000022lZ6eIAE", "name": "ANZ NCCR DEV |  Amendment  | AWS Private Link 2026 Renewal", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-09-24", "acv": 0, "nativeAcv": 0, "currency": "AUD", "account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Callum Docherty", "acd": "Genesys", "region": "International / ANZ - 1", "fedramp": "No"}, {"id": "006Ui000023czMHIAY", "name": "LIBERTY UTILITIES CONTACT CENTER |  CXone Recording for MS Teams", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-11-04", "acv": 121421.94, "nativeAcv": 169864.8, "currency": "CAD", "account": "Algonquin Power & Utilities Corp", "owner": "Robert Mahoney", "acd": "MS Teams", "region": "Americas", "fedramp": "No"}, {"id": "006Ui0000271A0KIAU", "name": "BT - UK - Enterprise - CXone Engagement Hub - Multi-ACD - Production Platform - 18000 Magpie", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-07-17", "acv": 1224936.93, "nativeAcv": 911979.02, "currency": "GBP", "account": "BT GROUP PLC ENTERPRISE", "owner": "Richard Hawkes", "acd": "Genesys", "region": "International / UK&I - 1", "fedramp": "No"}, {"id": "006Ui000027CfGuIAK", "name": "LOWE\u2019S COMPANIES, INC. | Cognigy AI", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-06-10", "acv": 1603202.4, "nativeAcv": 1603202.4, "currency": "USD", "account": "LOWE'S COMPANIES, INC.", "owner": "Tony Hawkins", "acd": "Cisco Systems", "region": "Americas / Travel & Leisure", "fedramp": "No"}, {"id": "006Ui000029HOhFIAW", "name": "'NATIONAL GRID | COGNIGY |  EXPERT CoPilot ENGAGMENT HUB CISCO with Acliviti", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-08-24", "acv": 1980000, "nativeAcv": 1980000, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00002CgkrKIAR", "name": "LOWE\u2019S COMPANIES, INC. |  Amendment  | QM, IA, and AR", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-07-18", "acv": 1931520, "nativeAcv": 1931520, "currency": "USD", "account": "LOWE'S COMPANIES, INC.", "owner": "Tony Hawkins", "acd": "Cisco Systems", "region": "Americas / Travel & Leisure", "fedramp": "No"}, {"id": "006Ui00002Do2CgIAJ", "name": "METLIFE INSURANCE K.K. DEV |  Amendment  | 2026-03-17", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-12-15", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "METLIFE, INC.", "owner": "Yutaka Homma", "acd": "Cisco Systems", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00002E9s6YIAR", "name": "The ESP Group | Engagement Hub + QMA | 250", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-09", "acv": 142186.05, "nativeAcv": 105859.08, "currency": "GBP", "account": "ESP SYSTEX HOLDINGS LIMITED", "owner": "Josh Chapman", "acd": "Genesys", "region": "International / UK&I - 4", "fedramp": "No"}, {"id": "006Ui00002FD2WzIAL", "name": "ANZ NCCR QA |  Amendment  | 2026-03-23", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-02-26", "acv": 0, "nativeAcv": 0, "currency": "AUD", "account": "AUSTRALIA AND NEW ZEALAND BANKING GROUP LIMITED", "owner": "Chris Grimshaw", "acd": "Genesys", "region": "International / ANZ - 1", "fedramp": "No"}, {"id": "006Ui00002Hllf1IAB", "name": "THE TORONTO-DOMINION BANK US WEST |  Amendment  | 2026-04-06", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-02-19", "acv": 0, "nativeAcv": 0, "currency": "CAD", "account": "THE TORONTO-DOMINION BANK", "owner": "Neil Balthazaar", "acd": "Cisco Systems", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui00002IDfMwIAL", "name": "INTEGRATED CARE 24 |  Amendment  | Integrations Hub", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-08-20", "acv": 1.29, "nativeAcv": 0.96, "currency": "GBP", "account": "INTEGRATED CARE 24 LIMITED", "owner": "Adam Massingberd - Mundy", "acd": "Cisco Systems", "region": "International / UK&I - 4", "fedramp": "No"}, {"id": "006Ui00002IJ27dIAD", "name": "INTEGRATED CARE 24 |  Amendment  | 2026-04-09", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-09-22", "acv": 2.58, "nativeAcv": 1.92, "currency": "GBP", "account": "INTEGRATED CARE 24 LIMITED", "owner": "Adam Massingberd - Mundy", "acd": "Cisco Systems", "region": "International / UK&I - 4", "fedramp": "No"}, {"id": "006Ui00002JBQeMIAX", "name": "DELIVEROO |  Amendment  | Expansion | DIRECT", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2027-02-11", "acv": 45525.18, "nativeAcv": 33894, "currency": "GBP", "account": "DELIVEROO PLC", "owner": "Danielle Jones", "acd": "Amazon Connect", "region": "International / UK&I - 2", "fedramp": "No"}, {"id": "006Ui00002JQwNlIAL", "name": "Xcel Energy | CXone | Quality Management | 450", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-12-22", "acv": 584419.44, "nativeAcv": 584419.44, "currency": "USD", "account": "XCEL ENERGY INC.", "owner": "Gannon Harris", "acd": "Avaya", "region": "Americas / Commercial Central 2", "fedramp": "No"}, {"id": "006Ui00002KgGtUIAV", "name": "Adobe - HD - CXone Open Recording - Multi ACD", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-09-18", "acv": 64821.6, "nativeAcv": 64821.6, "currency": "USD", "account": "ADOBE SYSTEMS INCORPORATED", "owner": "Rick Tirado", "acd": "Amazon Connect", "region": "Americas / Enterprise West", "fedramp": "No"}, {"id": "006Ui00002LZE6DIAX", "name": "VIDEOTRON |  Amendment  | Interactions Hub - Genesys", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-09-18", "acv": 1825523.62, "nativeAcv": 2553840, "currency": "CAD", "account": "Les Placements P\u00e9ladeau Inc", "owner": "Steve Rapp", "acd": "Genesys", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui00002LtZPqIAN", "name": "DSK Bank Bulgaria | Algotech | CXone | Migrate DSK to NiCE CXone eHub | 200", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-08-19", "acv": 92031.47, "nativeAcv": 79231.92, "currency": "EUR", "account": "OTP Bank Nyrt.", "owner": "Stefan Jung", "acd": "Unknown", "region": "International / DACH", "fedramp": "No"}, {"id": "006Ui00002M2iKGIAZ", "name": "BMO - Moxie to CXone Migration - US Leasing LOB", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-10-30", "acv": 228514.44, "nativeAcv": 228514.44, "currency": "USD", "account": "BANK OF MONTREAL", "owner": "Tamber Figurski", "acd": "Genesys", "region": "Americas / Canada", "fedramp": "No"}, {"id": "006Ui00002O1VHTIA3", "name": "Engagement Hub", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-12-31", "acv": 329546.88, "nativeAcv": 329546.88, "currency": "USD", "account": "LINGA, INC", "owner": "William Hamilton", "acd": "MS Teams", "region": "Americas / Commercial East 4", "fedramp": "No"}, {"id": "006Ui00002O23xRIAR", "name": "CHOICE HOTELS |  Amendment  | Transcription Options", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-06", "acv": 90914.64, "nativeAcv": 90914.64, "currency": "USD", "account": "CHOICE HOTELS INTERNATIONAL, INC.", "owner": "Kristee Blanciak", "acd": "NICE CXone Mpower", "region": "Americas / Enterprise East", "fedramp": "No"}, {"id": "006Ui00002O3P4jIAF", "name": "VRAD INC |  Amendment  | 2026-05-07", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-10-22", "acv": 99000, "nativeAcv": 99000, "currency": "USD", "account": "Radiology Partners Holdings, LLC", "owner": "Noa Nightingale", "acd": "Genesys", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00002OwlcQIAR", "name": "Nutrien Australia | NUTRIEN US LLC", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-11-26", "acv": 36382.44, "nativeAcv": 36382.44, "currency": "USD", "account": "Nutrien Ltd.", "owner": "Cory Shields", "acd": "Cisco Systems", "region": "Americas / Commercial Central 4", "fedramp": "No"}, {"id": "006Ui00002Rgj51IAB", "name": "METLIFE INSURANCE K.K. |  Amendment  | Expert", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-11-27", "acv": 480001.44, "nativeAcv": 480001.44, "currency": "USD", "account": "METLIFE, INC.", "owner": "Ritsuko Iida", "acd": "Cisco Systems", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00002SDLv9IAH", "name": "METLIFE INSURANCE K.K. DEV |  Amendment  | 2026-05-28", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-11-27", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "METLIFE, INC.", "owner": "Ritsuko Iida", "acd": "Cisco Systems", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00002SMHp5IAH", "name": "Cooper Health | Avant/CDW | CXone | 500", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-12-18", "acv": 699622.44, "nativeAcv": 699622.44, "currency": "USD", "account": "The Cooper Health System A New Jersey Non-Profit Corporation", "owner": "David Cannone", "acd": "Cisco Systems", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00002SMKNAIA5", "name": "VRAD INC |  Amendment  | CXSuccess Premier", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-09-08", "acv": 138600, "nativeAcv": 138600, "currency": "USD", "account": "Radiology Partners Holdings, LLC", "owner": "Noa Nightingale", "acd": "Genesys", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00002UmVX3IAN", "name": "SKIPTON BUILDING SOCIETY - UK |  Amendment  | 2026-06-10", "stage": "5", "stageName": "5 - Proposal / Negotiation", "stageShort": "Proposal / Negotiation", "closeDate": "2026-07-17", "acv": 3868.31, "nativeAcv": 2880, "currency": "GBP", "account": "SKIPTON BUILDING SOCIETY", "owner": "Steven Lee", "acd": "MS Teams", "region": "International / UK&I - 3", "fedramp": "No"}, {"id": "006Ui00002WExnxIAD", "name": "U-Haul | Bridgepointe | CXone | Engagement Hub | 2,300", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-12-18", "acv": 403218.6, "nativeAcv": 403218.6, "currency": "USD", "account": "AMERCO", "owner": "Luke Hostetter", "acd": "Cisco Systems", "region": "Americas / Enterprise West", "fedramp": "No"}, {"id": "006Ui00002WPu6sIAD", "name": "NORTHWESTERN MEMORIAL HEALTHCARE |  Amendment  | Cognigy Pivot | NW26", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-10-23", "acv": 327708.94, "nativeAcv": 327708.94, "currency": "USD", "account": "Northwestern Memorial Healthcare", "owner": "Kyler Wilson", "acd": "NICE CXone Mpower", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00002XclYAIAZ", "name": "NORTHWESTERN MEMORIAL HEALTHCARE |  Amendment  | Operator Console", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-12-18", "acv": 356254.8, "nativeAcv": 356254.8, "currency": "USD", "account": "Northwestern Memorial Healthcare", "owner": "Kyler Wilson", "acd": "NICE CXone Mpower", "region": "Americas / Healthcare 3", "fedramp": "No"}, {"id": "006Ui00002XexDUIAZ", "name": "NATIONAL GRID | Amendment | Tele Performance Competitive BPO Take out ~ Bring on 50 New Agents for Metering LOB", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-07-28", "acv": 37352.4, "nativeAcv": 37352.4, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00002XfyaUIAR", "name": "METLIFE INSURANCE K.K. |  Amendment  | Teams Recording", "stage": "2", "stageName": "2 - Determining Problem / Impact", "stageShort": "Determining Problem", "closeDate": "2026-10-30", "acv": 84000, "nativeAcv": 84000, "currency": "USD", "account": "METLIFE, INC.", "owner": "Ritsuko Iida", "acd": "MS Teams", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00002Xg5AYIAZ", "name": "METLIFE INSURANCE K.K. DEV |  Amendment  | Teams Test", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-12-04", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "METLIFE, INC.", "owner": "Ritsuko Iida", "acd": "MS Teams", "region": "International / Japan", "fedramp": "No"}, {"id": "006Ui00002XmhJZIAZ", "name": "DEPARTMENT FOR WORK AND PENSIONS |  Amendment  | PM Insights IEX Integration", "stage": "3", "stageName": "3 - Aligning Benefits & Value", "stageShort": "Aligning Benefits", "closeDate": "2026-07-30", "acv": 0, "nativeAcv": 0, "currency": "GBP", "account": "DEPARTMENT FOR WORK AND PENSIONS - UK", "owner": "Martin Joice", "acd": "NICE CXone Mpower", "region": "International / UK&I - 1", "fedramp": "No"}, {"id": "006Ui00002Y2pmbIAB", "name": "NATIONAL GRID | Amendment | CXone ACD  58 Agent Service Desk", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2027-03-12", "acv": 0, "nativeAcv": 0, "currency": "USD", "account": "NATIONAL GRID", "owner": "Dave Smith", "acd": "Cisco Systems", "region": "Americas / Industrial and Infrastructure", "fedramp": "No"}, {"id": "006Ui00002YT3h4IAD", "name": "DEPARTMENT FOR WORK AND PENSIONS |  Amendment  | Concurrency Capacity Upgrade - 25k | R101", "stage": "4", "stageName": "4 - Confirm Value & Agreement", "stageShort": "Confirm Value", "closeDate": "2026-07-31", "acv": 628600.52, "nativeAcv": 468000, "currency": "GBP", "account": "DEPARTMENT FOR WORK AND PENSIONS - UK", "owner": "Martin Joice", "acd": "NICE CXone Mpower", "region": "International / UK&I - 1", "fedramp": "No"}, {"id": "006Ui00002YbSryIAF", "name": "SWINTON INSURANCE |  Amendment  | Long Term to Short Term Storage", "stage": "1", "stageName": "1 - Identification / Qualification", "stageShort": "Identification / Qualification", "closeDate": "2026-08-28", "acv": 0, "nativeAcv": 0, "currency": "GBP", "account": "Venus Topco Limited", "owner": "Maxine Allard", "acd": "UJET", "region": "International / UK&I - 1", "fedramp": "No"}];
+const SF_BASE = 'https://niceincontact.lightning.force.com/lightning/r/Opportunity';
+
+async function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+  const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  if (hex === HASH) {
+    sessionStorage.setItem('ehub_auth','1');
+    document.getElementById('pw-gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  } else {
+    document.getElementById('pw-error').textContent = 'Incorrect password. Try again.';
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+window.onload = () => {
+  if (sessionStorage.getItem('ehub_auth') === '1') {
+    document.getElementById('pw-gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    init();
+  }
+};
+
+let sortField = null;
+let sortDir = 0;
+let collapsed = new Set();
+
+function fmt(n) {
+  if (!n) return '$0';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + n.toFixed(0);
+}
+function fmtFull(n) {
+  if (!n) return '$0';
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+
+function acdClass(acd) {
+  if (!acd) return 'acd-other';
+  const a = acd.toLowerCase();
+  if (a.includes('genesys')) return 'acd-genesys';
+  if (a.includes('cisco')) return 'acd-cisco';
+  if (a.includes('avaya')) return 'acd-avaya';
+  if (a.includes('amazon')) return 'acd-amazon';
+  if (a.includes('teams')) return 'acd-msteams';
+  if (a.includes('nice')) return 'acd-nice';
+  return 'acd-other';
+}
+
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const fs = document.getElementById('f-stage').value;
+  const fr = document.getElementById('f-region').value;
+  const fa = document.getElementById('f-acd').value;
+  return ALL_OPPS.filter(o => {
+    if (q && !o.name.toLowerCase().includes(q) && !o.account.toLowerCase().includes(q)) return false;
+    if (fs && o.stage !== fs) return false;
+    if (fr && !o.region.startsWith(fr)) return false;
+    if (fa && o.acd !== fa) return false;
+    return true;
+  });
+}
+
+function populateFilters() {
+  const regions = [...new Set(ALL_OPPS.map(o => o.region.split(' / ')[0]))].sort();
+  const acds = [...new Set(ALL_OPPS.map(o => o.acd))].sort();
+  const rs = document.getElementById('f-region');
+  const opt0 = document.createElement('option'); opt0.value=''; opt0.textContent='All Regions'; rs.appendChild(opt0);
+  regions.forEach(r => { const op = document.createElement('option'); op.value=r; op.textContent=r; rs.appendChild(op); });
+  const as = document.getElementById('f-acd');
+  const opt1 = document.createElement('option'); opt1.value=''; opt1.textContent='All ACDs'; as.appendChild(opt1);
+  acds.forEach(a => { const op = document.createElement('option'); op.value=a; op.textContent=a; as.appendChild(op); });
+}
+
+function renderStats(opps) {
+  const totalACV = opps.reduce((s,o) => s+o.acv, 0);
+  const accts = new Set(opps.map(o=>o.account)).size;
+  const fedramp = opps.filter(o=>o.fedramp==='Yes').length;
+  const acdSet = new Set(opps.map(o=>o.acd));
+  document.getElementById('stats-bar').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Open Deals</div><div class="stat-value">'+opps.length+'</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Accounts</div><div class="stat-value">'+accts+'</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total Pipeline (USD)</div><div class="stat-value">'+fmt(totalACV)+'</div></div>' +
+    '<div class="stat-card"><div class="stat-label">FedRAMP</div><div class="stat-value">'+fedramp+'</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Distinct ACDs</div><div class="stat-value">'+acdSet.size+'</div></div>';
+}
+
+function renderSidebar(opps) {
+  const stageMap = {};
+  opps.forEach(o => {
+    if (!stageMap[o.stage]) stageMap[o.stage] = {count:0, acv:0};
+    stageMap[o.stage].count++;
+    stageMap[o.stage].acv += o.acv;
+  });
+  const stageNames = {'0':'Prospecting','1':'Identification','2':'Determining Problem','3':'Aligning Benefits','4':'Confirm Value','5':'Proposal / Negotiation'};
+  let sHtml = '<h3>By Stage</h3>';
+  [0,1,2,3,4,5].forEach(s => {
+    const d = stageMap[String(s)];
+    if (!d) return;
+    sHtml += '<div class="sb-row" onclick="filterStage(\''+s+'\')"><div class="sb-label">'+s+' · '+stageNames[s]+'</div><div class="sb-meta"><span class="sb-count">'+d.count+'</span><br><span class="sb-acv">'+fmt(d.acv)+'</span></div></div>';
+  });
+
+  const acdMap = {};
+  opps.forEach(o => {
+    if (!acdMap[o.acd]) acdMap[o.acd] = {count:0, acv:0};
+    acdMap[o.acd].count++;
+    acdMap[o.acd].acv += o.acv;
+  });
+  const sortedAcds = Object.entries(acdMap).sort((a,b) => b[1].acv - a[1].acv);
+  let aHtml = '<h3>By ACD</h3>';
+  sortedAcds.forEach(([acd, d]) => {
+    aHtml += '<div class="sb-row" onclick="filterAcd(\''+acd.replace(/'/g,"\\'")+'\')" ><div class="sb-label">'+acd+'</div><div class="sb-meta"><span class="sb-count">'+d.count+'</span><br><span class="sb-acv">'+fmt(d.acv)+'</span></div></div>';
+  });
+
+  const regMap = {};
+  opps.forEach(o => {
+    const r = o.region.split(' / ')[0];
+    if (!regMap[r]) regMap[r] = 0;
+    regMap[r]++;
+  });
+  const sortedRegs = Object.entries(regMap).sort((a,b) => b[1]-a[1]);
+  let rHtml = '<h3>By Region</h3>';
+  sortedRegs.forEach(([r, cnt]) => {
+    rHtml += '<div class="sb-row" onclick="filterRegion(\''+r.replace(/'/g,"\\'")+'\')" ><div class="sb-label">'+r+'</div><div class="sb-meta"><span class="sb-count">'+cnt+'</span></div></div>';
+  });
+
+  document.getElementById('sidebar').innerHTML = sHtml + aHtml + rHtml;
+}
+
+function dealRow(o, showAcct) {
+  const fedrampBadge = o.fedramp === 'Yes' ? ' <span class="badge fedramp-yes">FedRAMP</span>' : '';
+  const nativeLabel = (o.currency !== 'USD' && o.nativeAcv) ? '<div class="acv-native">'+o.currency+' '+Number(o.nativeAcv).toLocaleString('en-US',{maximumFractionDigits:0})+'</div>' : '';
+  return '<tr class="deal-row">' +
+    '<td><a class="opp-link" href="'+SF_BASE+'/'+o.id+'/view" target="_blank">'+o.name+'</a>'+fedrampBadge+'</td>' +
+    '<td>'+(showAcct ? o.account : '')+'</td>' +
+    '<td><span class="badge stage-'+o.stage+'">'+o.stage+' · '+o.stageShort+'</span></td>' +
+    '<td>'+o.closeDate+'</td>' +
+    '<td class="acv-cell">'+fmtFull(o.acv)+nativeLabel+'</td>' +
+    '<td><span class="acd-pill '+acdClass(o.acd)+'">'+o.acd+'</span></td>' +
+    '<td>'+o.region+'</td>' +
+    '<td>'+o.owner+'</td>' +
+    '</tr>';
+}
+
+function renderTable(opps) {
+  const tbody = document.getElementById('table-body');
+  if (sortField && sortDir > 0) {
+    const sorted = [...opps].sort((a,b) => {
+      let av = a[sortField], bv = b[sortField];
+      if (sortField === 'acv') { av = Number(av); bv = Number(bv); }
+      if (av < bv) return sortDir===1 ? -1 : 1;
+      if (av > bv) return sortDir===1 ? 1 : -1;
+      return 0;
+    });
+    tbody.innerHTML = sorted.map(o => dealRow(o, true)).join('');
+  } else {
+    const acctMap = {};
+    opps.forEach(o => {
+      if (!acctMap[o.account]) acctMap[o.account] = [];
+      acctMap[o.account].push(o);
+    });
+    const sortedAccts = Object.entries(acctMap)
+      .map(([acct, deals]) => ({acct, deals, totalACV: deals.reduce((s,d)=>s+d.acv,0)}))
+      .sort((a,b) => b.totalACV - a.totalACV);
+
+    let rows = '';
+    sortedAccts.forEach(({acct, deals, totalACV}) => {
+      const isCollapsed = collapsed.has(acct);
+      const acdBadges = [...new Set(deals.map(d=>d.acd))].map(a => '<span class="acd-pill '+acdClass(a)+'">'+a+'</span>').join(' ');
+      const safeAcct = acct.replace(/'/g, "\\'");
+      rows += '<tr class="acct-row" onclick="toggleAcct(\''+safeAcct+'\')">' +
+        '<td colspan="4"><span class="toggle-icon">'+(isCollapsed?'▶':'▼')+'</span><span class="acct-name">'+acct+'</span><div class="acct-meta">'+deals.length+' deal'+(deals.length!==1?'s:':':')+' '+acdBadges+'</div></td>' +
+        '<td class="acv-cell acct-acv">'+fmtFull(totalACV)+'</td>' +
+        '<td colspan="3"></td></tr>';
+      if (!isCollapsed) {
+        deals.sort((a,b) => (a.closeDate||'').localeCompare(b.closeDate||''));
+        rows += deals.map(o => dealRow(o, false)).join('');
+      }
+    });
+    tbody.innerHTML = rows;
+  }
+  const acctCount = new Set(opps.map(o=>o.account)).size;
+  document.getElementById('filter-count').textContent = opps.length+' deal'+(opps.length!==1?'s':'')+' · '+acctCount+' account'+(acctCount!==1?'s':'');
+}
+
+function toggleAcct(acct) {
+  if (collapsed.has(acct)) collapsed.delete(acct);
+  else collapsed.add(acct);
+  applyFilters();
+}
+
+function sortBy(field) {
+  const hdrs = ['name','account','stage','closeDate','acv','acd','region','owner'];
+  hdrs.forEach(h => { document.getElementById('th-'+h).className = ''; });
+  if (sortField === field) {
+    sortDir = (sortDir + 1) % 3;
+    if (sortDir === 0) sortField = null;
+  } else {
+    sortField = field;
+    sortDir = 1;
+  }
+  if (sortField) {
+    document.getElementById('th-'+sortField).className = sortDir===1?'sort-asc':'sort-desc';
+  }
+  applyFilters();
+}
+
+function filterStage(s) { document.getElementById('f-stage').value = s; applyFilters(); }
+function filterAcd(a) { document.getElementById('f-acd').value = a; applyFilters(); }
+function filterRegion(r) { document.getElementById('f-region').value = r; applyFilters(); }
+
+function applyFilters() {
+  const filtered = getFiltered();
+  renderStats(filtered);
+  renderSidebar(filtered);
+  renderTable(filtered);
+}
+
+function init() {
+  populateFilters();
+  applyFilters();
+}
+</script>
 </body>
 </html>
