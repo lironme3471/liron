@@ -6,156 +6,163 @@
 <title>eHub Offline Dashboard</title>
 <style>
   :root {
-    --blue: #3694fc;
+    --nice-blue: #3694fc;
     --charcoal: #21212b;
     --indigo: #6100FF;
     --teal: #36EAD0;
     --coral: #FF5B8A;
-    --bg: #f5f6fa;
-    --card: #ffffff;
-    --border: #e2e4ec;
+    --purple: #9b59e0;
+    --green: #2ecc71;
+    --yellow: #f5b942;
+    --bg: #f4f6fa;
+    --card-bg: #ffffff;
+    --border: #e2e6ed;
     --text: #21212b;
-    --muted: #6b6f7d;
+    --text-muted: #6b7280;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
     color: var(--text);
   }
+
   /* Password gate */
   #gate {
-    position: fixed; inset: 0; background: var(--charcoal);
-    display: flex; align-items: center; justify-content: center; z-index: 9999;
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--charcoal);
+    display: flex; align-items: center; justify-content: center;
   }
-  #gate .card {
-    background: #fff; border-radius: 14px; padding: 40px 36px; width: 340px;
-    text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  #gateCard {
+    background: #fff; border-radius: 12px; padding: 40px 36px;
+    width: 320px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
-  #gate h1 { font-size: 20px; margin: 0 0 6px; color: var(--charcoal); }
-  #gate p { font-size: 13px; color: var(--muted); margin: 0 0 20px; }
-  #gate input {
-    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
-    font-size: 14px; margin-bottom: 12px;
+  #gateCard .logo { font-weight: 800; font-size: 22px; color: var(--nice-blue); letter-spacing: 1px; margin-bottom: 4px; }
+  #gateCard h2 { margin: 8px 0 20px; font-size: 18px; color: var(--charcoal); }
+  #gateCard input {
+    width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 12px; outline: none;
   }
-  #gate button {
-    width: 100%; padding: 10px 12px; border-radius: 8px; border: none;
-    background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+  #gateCard input:focus { border-color: var(--nice-blue); }
+  #gateCard button {
+    width: 100%; padding: 10px 12px; font-size: 14px; font-weight: 600;
+    background: var(--nice-blue); color: #fff; border: none; border-radius: 8px; cursor: pointer;
   }
-  #gate .err { color: var(--coral); font-size: 12px; margin-top: 8px; min-height: 16px; }
-  #gate .logo { font-weight: 800; letter-spacing: 1px; color: var(--indigo); font-size: 13px; margin-bottom: 14px; }
+  #gateCard button:hover { background: #2a7bd6; }
+  #pwError { color: var(--coral); font-size: 13px; margin-top: 10px; display: none; }
 
   #app { display: none; max-width: 1400px; margin: 0 auto; padding: 24px 20px 60px; }
-  header { margin-bottom: 20px; }
+
+  header.top { margin-bottom: 20px; }
   .title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  h1 { font-size: 24px; margin: 0; color: var(--charcoal); }
-  .badge-retrieved {
-    background: var(--indigo); color: #fff; font-size: 12px; font-weight: 600;
-    padding: 4px 10px; border-radius: 20px;
+  .title-row h1 { font-size: 26px; margin: 0; color: var(--charcoal); }
+  .retrieved-badge {
+    background: var(--charcoal); color: #fff; font-size: 12px; font-weight: 600;
+    padding: 5px 12px; border-radius: 20px; white-space: nowrap;
   }
-  .subtitle { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.5; }
+  .subtitle { color: var(--text-muted); font-size: 13px; margin-top: 6px; line-height: 1.5; }
 
   .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 20px 0; }
   .stat-tile {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
   }
-  .stat-tile .val { font-size: 24px; font-weight: 700; color: var(--charcoal); }
-  .stat-tile .lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-tile .num { font-size: 26px; font-weight: 800; color: var(--charcoal); }
+  .stat-tile .label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .stat-tile.fedramp .num { color: var(--purple); }
 
   .layout { display: grid; grid-template-columns: 1fr 280px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  .main-panel { min-width: 0; }
 
   .filters {
-    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 14px;
   }
-  .filters input[type=text] {
-    padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px;
-    min-width: 200px;
+  .filters input[type="text"] {
+    flex: 1 1 200px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 13px; outline: none;
   }
   .filters select {
-    padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 13px; background: #fff;
+    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px;
+    background: #fff; outline: none;
   }
-  .count-label { font-size: 12px; color: var(--muted); margin-left: auto; }
+  .filters .count { margin-left: auto; font-size: 13px; color: var(--text-muted); white-space: nowrap; }
 
-  table {
-    width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden;
-    border: 1px solid var(--border); font-size: 13px;
-  }
+  table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 10px; overflow: hidden; }
   thead th {
-    text-align: left; padding: 10px 12px; background: #f0f1f6; color: var(--muted);
-    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; user-select: none;
-    white-space: nowrap;
+    background: var(--charcoal); color: #fff; text-align: left; font-size: 12px;
+    padding: 10px 12px; cursor: pointer; user-select: none; white-space: nowrap;
   }
-  thead th:hover { color: var(--charcoal); }
-  tbody td { padding: 9px 12px; border-top: 1px solid var(--border); vertical-align: top; }
-  .account-header { background: #eef2fb; cursor: pointer; font-weight: 600; }
-  .account-header td { padding: 10px 12px; }
-  .account-header .caret { display: inline-block; transition: transform 0.15s; color: var(--indigo); }
-  .account-header.collapsed .caret { transform: rotate(-90deg); }
-  .acct-meta { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
-  .acct-total { font-weight: 700; }
-  .deal-row.hidden-collapsed { display: none; }
-  .opp-cell a { color: var(--blue); text-decoration: none; font-weight: 500; }
-  .opp-cell a:hover { text-decoration: underline; }
-  .acct-cell { color: var(--muted); }
-  .acv-cell { font-weight: 600; white-space: nowrap; }
-  .acv-sub { font-size: 11px; color: var(--muted); font-weight: 400; }
+  thead th:hover { background: #32323f; }
+  thead th .arrow { font-size: 10px; margin-left: 4px; opacity: 0.8; }
+  tbody td { padding: 9px 12px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr.deal-row:hover { background: #f8fafc; }
+  tbody tr.deal-row td.indent { padding-left: 26px; }
 
-  .pill-row { display: flex; gap: 4px; flex-wrap: wrap; }
-  .type-pill {
-    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap;
-  }
-  .dash-muted { color: var(--muted); }
+  tr.account-header { background: #eef3fb; cursor: pointer; }
+  tr.account-header:hover { background: #e4ecf9; }
+  tr.account-header td { padding: 10px 12px; font-weight: 700; font-size: 13px; color: var(--charcoal); border-bottom: 1px solid var(--border); }
+  tr.account-header .acct-name { display: flex; align-items: center; gap: 8px; }
+  tr.account-header .caret { font-size: 11px; transition: transform 0.15s; display: inline-block; }
+  tr.account-header.collapsed .caret { transform: rotate(-90deg); }
+  tr.account-header .deal-count { font-weight: 500; color: var(--text-muted); font-size: 12px; }
+  tr.account-header .acct-total { font-weight: 700; }
 
-  .stage-badge { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
-  .stage-num { font-weight: 800; }
-  .stage-blue { background: #e5f1ff; color: #1a6fd1; }
-  .stage-yellow { background: #fff6dd; color: #a2780a; }
-  .stage-purple { background: #f1e5ff; color: var(--indigo); }
-  .stage-green { background: #e4faf4; color: #0f9d78; }
+  a.opp-link { color: var(--nice-blue); text-decoration: none; font-weight: 600; }
+  a.opp-link:hover { text-decoration: underline; }
+
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; color: #fff; margin: 1px 3px 1px 0; }
+  .pill.AMC { background: var(--nice-blue); }
+  .pill.Ticketing { background: var(--coral); }
+  .pill.Generic { background: var(--teal); color: #15423c; }
+  .pill.SmartReach { background: var(--indigo); }
+  .no-type { color: var(--text-muted); }
+
+  .stage-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 14px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+  .stage-badge.s-blue { background: var(--nice-blue); }
+  .stage-badge.s-yellow { background: var(--yellow); color: #3a2c00; }
+  .stage-badge.s-purple { background: var(--indigo); }
+  .stage-badge.s-green { background: var(--green); }
 
   .fedramp-badge {
-    background: #f1e5ff; color: var(--indigo); font-size: 10px; font-weight: 700;
-    padding: 2px 7px; border-radius: 20px; margin-left: 6px; white-space: nowrap;
+    display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 10px;
+    background: var(--purple); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 0.3px;
   }
 
-  .sidebar { display: flex; flex-direction: column; gap: 14px; }
-  .side-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+  .acv-native { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+  .sidebar-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 14px;
   }
-  .side-card h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 10px; }
-  .side-row { display: flex; justify-content: space-between; font-size: 12.5px; padding: 5px 0; border-top: 1px solid var(--border); }
-  .side-row:first-child { border-top: none; }
-  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-
-  .sort-arrow { font-size: 10px; margin-left: 3px; }
-
-  footer { margin-top: 24px; font-size: 11px; color: var(--muted); text-align: center; }
-
-  @media (max-width: 900px) {
-    .layout { grid-template-columns: 1fr; }
-    .stats-bar { grid-template-columns: repeat(2, 1fr); }
-  }
+  .sidebar-card h3 { margin: 0 0 10px; font-size: 13px; color: var(--charcoal); text-transform: uppercase; letter-spacing: 0.4px; }
+  .sidebar-row { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid #f0f2f6; }
+  .sidebar-row:last-child { border-bottom: none; }
+  .sidebar-row .srow-label { color: var(--text); }
+  .sidebar-row .srow-val { color: var(--text-muted); font-weight: 600; text-align: right; }
 </style>
 </head>
 <body>
 
 <div id="gate">
-  <div class="card">
+  <div id="gateCard">
     <div class="logo">NiCE</div>
-    <h1>eHub Offline Dashboard</h1>
-    <p>Enter the password to continue</p>
-    <input type="password" id="pwInput" placeholder="Password" autocomplete="off">
+    <h2>eHub Offline Dashboard</h2>
+    <input type="password" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPw()">
     <button onclick="checkPw()">Access Dashboard</button>
-    <div class="err" id="pwErr"></div>
+    <div id="pwError">Incorrect password. Try again.</div>
   </div>
 </div>
 
 <div id="app">
-  <header>
+  <header class="top">
     <div class="title-row">
       <h1>eHub Offline Dashboard</h1>
-      <span class="badge-retrieved">Data retrieved: October 27, 2026</span>
+      <span class="retrieved-badge">Data retrieved: October 28, 2026</span>
     </div>
     <div class="subtitle">
       Engagement Hub Offline &middot; open opportunities (excl. Closed) &middot; Salesforce CPQ &middot; SKU 1464-3063<br>
@@ -164,1507 +171,332 @@
   </header>
 
   <div class="stats-bar">
-    <div class="stat-tile"><div class="val">53</div><div class="lbl">Open Deals</div></div>
-    <div class="stat-tile"><div class="val">44</div><div class="lbl">Accounts</div></div>
-    <div class="stat-tile"><div class="val">$20,494,049</div><div class="lbl">Total Pipeline ACV (USD)</div></div>
-    <div class="stat-tile"><div class="val">0</div><div class="lbl">FedRAMP</div></div>
+    <div class="stat-tile"><div class="num" id="statDeals">0</div><div class="label">Open Deals</div></div>
+    <div class="stat-tile"><div class="num" id="statAccounts">0</div><div class="label">Accounts</div></div>
+    <div class="stat-tile"><div class="num" id="statACV">$0</div><div class="label">Total Pipeline ACV (USD)</div></div>
+    <div class="stat-tile fedramp"><div class="num" id="statFedramp">0</div><div class="label">FedRAMP</div></div>
   </div>
 
   <div class="layout">
-    <div>
+    <div class="main-panel">
       <div class="filters">
         <input type="text" id="searchBox" placeholder="Search opportunity, account, owner...">
-        <select id="typeFilter"><option value="">All Types</option><option value="AMC">AMC</option><option value="Ticketing">Ticketing</option><option value="Generic">Generic</option><option value="SmartReach">SmartReach</option></select>
-        <select id="stageFilter"><option value="">All Stages</option><option value="1">1 · Identification / Qualification</option><option value="2">2 · Determining Problem / Impact</option><option value="3">3 · Aligning Benefits &amp; Value</option><option value="4">4 · Confirm Value &amp; Agreement</option><option value="5">5 · Proposal / Negotiation</option></select>
-        <select id="regionFilter"><option value="">All Regions</option><option value="Americas / Canada">Americas / Canada</option><option value="Americas / Commercial Central 1">Americas / Commercial Central 1</option><option value="Americas / Commercial Central 2">Americas / Commercial Central 2</option><option value="Americas / Commercial Central 3">Americas / Commercial Central 3</option><option value="Americas / Commercial East 4">Americas / Commercial East 4</option><option value="Americas / Commercial West 2">Americas / Commercial West 2</option><option value="Americas / Commercial West 3">Americas / Commercial West 3</option><option value="Americas / Diversified BPO">Americas / Diversified BPO</option><option value="Americas / Enterprise AI Acquisition">Americas / Enterprise AI Acquisition</option><option value="Americas / Enterprise Central">Americas / Enterprise Central</option><option value="Americas / Enterprise East">Americas / Enterprise East</option><option value="Americas / Enterprise West">Americas / Enterprise West</option><option value="Americas / FSI 1">Americas / FSI 1</option><option value="Americas / FSI 3">Americas / FSI 3</option><option value="Americas / FSI 4">Americas / FSI 4</option><option value="Americas / Federal">Americas / Federal</option><option value="Americas / Healthcare 3">Americas / Healthcare 3</option><option value="Americas / SMB Central">Americas / SMB Central</option><option value="Americas / SMB East">Americas / SMB East</option><option value="Americas / SMB Verticals">Americas / SMB Verticals</option><option value="Americas / SMB West">Americas / SMB West</option><option value="Enterprise West">Enterprise West</option><option value="International / ANZ - 2">International / ANZ - 2</option><option value="International / Africa &amp; Israel">International / Africa &amp; Israel</option><option value="International / DACH">International / DACH</option><option value="International / France">International / France</option><option value="International / SEA">International / SEA</option><option value="International / UK&amp;I - 1">International / UK&amp;I - 1</option><option value="International / UK&amp;I - 5">International / UK&amp;I - 5</option><option value="Japan">Japan</option><option value="Playvox">Playvox</option></select>
-        <span class="count-label" id="countLabel"></span>
+        <select id="typeFilter"><option value="">All Types</option></select>
+        <select id="stageFilter"><option value="">All Stages</option></select>
+        <select id="regionFilter"><option value="">All Regions</option></select>
+        <span class="count" id="countLabel"></span>
       </div>
 
-      <table id="dealTable">
+      <table>
         <thead>
-          <tr>
-            <th data-key="name">Opportunity</th>
-            <th data-key="account">Account</th>
-            <th data-key="type">Type</th>
-            <th data-key="stage">Stage</th>
-            <th data-key="close">Close Date</th>
-            <th data-key="acv">ACV</th>
-            <th data-key="region">Region / Territory</th>
-            <th data-key="owner">Owner</th>
-          </tr>
+          <tr id="headerRow"></tr>
         </thead>
-        <tbody id="groupedBody">
-<tr class="account-header" data-acct="6ea440b6" onclick="toggleAccount('6ea440b6')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Sky plc </span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$5,492,422</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="6ea440b6" data-type="SmartReach" data-stage="2" data-region="International / UK&amp;I - 1" data-search="sky | cxone | rfp | 13000 sky plc  jenna shanks" data-acv="5492422.07" data-close="2027-10-13" data-name="SKY | CXone | RFP | 13000" data-owner="Jenna Shanks" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00000qGNVlIAO/view" target="_blank" rel="noopener">SKY | CXone | RFP | 13000</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Oct 13, 2027</td>
-<td class="acv-cell">$5,492,422<div class="acv-sub">GBP 4,120,964</div></td>
-<td>International / UK&amp;I - 1</td>
-<td>Jenna Shanks </td>
-</tr>
-<tr class="account-header" data-acct="b73e99ab" onclick="toggleAccount('b73e99ab')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">ISRAEL DISCOUNT BANK LIMITED</span> <span class="acct-meta">3 deals</span></td>
-<td class="acv-cell acct-total">$3,910,286</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="b73e99ab" data-type="Ticketing" data-stage="4" data-region="International / Africa &amp; Israel" data-search="bank discount ccaas for test 20 agents israel discount bank limited eytan chen" data-acv="52356.72" data-close="2026-10-20" data-name="BANK DISCOUNT CCaaS for TEST 20 agents" data-owner="Eytan Chen" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002NssEsIAJ/view" target="_blank" rel="noopener">BANK DISCOUNT CCaaS for TEST 20 agents</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Oct 20, 2026</td>
-<td class="acv-cell">$52,357</td>
-<td>International / Africa &amp; Israel</td>
-<td>Eytan Chen </td>
-</tr>
-<tr class="deal-row" data-parent="b73e99ab" data-type="Ticketing" data-stage="4" data-region="International / Africa &amp; Israel" data-search="bank discount - ccaas dev for 10 agents israel discount bank limited eytan chen" data-acv="48095.16" data-close="2026-11-17" data-name="BANK DISCOUNT - CCaaS DEV for 10 agents" data-owner="Eytan Chen" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002NsxPrIAJ/view" target="_blank" rel="noopener">BANK DISCOUNT - CCaaS DEV for 10 agents</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Nov 17, 2026</td>
-<td class="acv-cell">$48,095</td>
-<td>International / Africa &amp; Israel</td>
-<td>Eytan Chen </td>
-</tr>
-<tr class="deal-row" data-parent="b73e99ab" data-type="Ticketing" data-stage="2" data-region="International / Africa &amp; Israel" data-search="bank discount | orange | rfp i cxone | ccaas solution | 3,040 agents israel discount bank limited eytan chen" data-acv="3809834.04" data-close="2027-02-15" data-name="Bank Discount | Orange | RFP I CXone | CCaaS solution | 3,040 agents" data-owner="Eytan Chen" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000021JjflIAC/view" target="_blank" rel="noopener">Bank Discount | Orange | RFP I CXone | CCaaS solution | 3,040 agents</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Feb 15, 2027</td>
-<td class="acv-cell">$3,809,834</td>
-<td>International / Africa &amp; Israel</td>
-<td>Eytan Chen </td>
-</tr>
-<tr class="account-header" data-acct="43bc183f" onclick="toggleAccount('43bc183f')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">WSP Global Inc</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$1,836,637</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="43bc183f" data-type="SmartReach" data-stage="3" data-region="Americas / Federal" data-search="wsp | cisco takeout | cxone | 140 agents wsp global inc jesse dicocco" data-acv="1836636.6" data-close="2028-11-20" data-name="WSP | Cisco Takeout | CXone | 140 Agents" data-owner="Jesse DiCocco" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001NBeD9IAL/view" target="_blank" rel="noopener">WSP | Cisco Takeout | CXone | 140 Agents</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Nov 20, 2028</td>
-<td class="acv-cell">$1,836,637</td>
-<td>Americas / Federal</td>
-<td>Jesse DiCocco </td>
-</tr>
-<tr class="account-header" data-acct="934450b3" onclick="toggleAccount('934450b3')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Radiology Partners Holdings, LLC</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$999,008</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="934450b3" data-type="SmartReach" data-stage="3" data-region="Americas / Healthcare 3" data-search="radiology partners | cxone | 200 radiology partners holdings, llc noa nightingale" data-acv="999007.68" data-close="2027-06-17" data-name="Radiology Partners | CXone | 200" data-owner="Noa Nightingale" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001a57q1IAA/view" target="_blank" rel="noopener">Radiology Partners | CXone | 200</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Jun 17, 2027</td>
-<td class="acv-cell">$999,008</td>
-<td>Americas / Healthcare 3</td>
-<td>Noa Nightingale </td>
-</tr>
-<tr class="account-header" data-acct="858d304b" onclick="toggleAccount('858d304b')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Spire Inc.</span> <span class="acct-meta">3 deals</span></td>
-<td class="acv-cell acct-total">$709,253</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="858d304b" data-type="SmartReach" data-stage="1" data-region="Americas / Commercial Central 3" data-search="spire |  amendment  | ps hours | accenture spire inc. jason cates" data-acv="0" data-close="2026-10-23" data-name="SPIRE |  Amendment  | PS Hours | Accenture" data-owner="Jason Cates" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000004kQ3fAAE/view" target="_blank" rel="noopener">SPIRE |  Amendment  | PS Hours | Accenture</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Oct 23, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / Commercial Central 3</td>
-<td>Jason Cates </td>
-</tr>
-<tr class="deal-row" data-parent="858d304b" data-type="SmartReach" data-stage="4" data-region="Americas / Commercial Central 3" data-search="spire |  amendment  | 2026-07-20 spire inc. jason cates" data-acv="119946.24" data-close="2026-12-18" data-name="SPIRE |  Amendment  | 2026-07-20" data-owner="Jason Cates" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002cjSsUIAU/view" target="_blank" rel="noopener">SPIRE |  Amendment  | 2026-07-20</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Dec 18, 2026</td>
-<td class="acv-cell">$119,946</td>
-<td>Americas / Commercial Central 3</td>
-<td>Jason Cates </td>
-</tr>
-<tr class="deal-row" data-parent="858d304b" data-type="SmartReach" data-stage="1" data-region="Americas / Commercial Central 3" data-search="spire |  amendment  | cognigy convert from autopilot | accenture spire inc. tara miller" data-acv="589306.32" data-close="2027-04-09" data-name="SPIRE |  Amendment  | Cognigy Convert from Autopilot | Accenture" data-owner="Tara Miller" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000004wc10AAA/view" target="_blank" rel="noopener">SPIRE |  Amendment  | Cognigy Convert from Autopilot | Accenture</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Apr 9, 2027</td>
-<td class="acv-cell">$589,306</td>
-<td>Americas / Commercial Central 3</td>
-<td>Tara Miller </td>
-</tr>
-<tr class="account-header" data-acct="2d81b4f8" onclick="toggleAccount('2d81b4f8')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">NRG ENERGY, INC.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$650,000</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="2d81b4f8" data-type="SmartReach" data-stage="4" data-region="Americas / FSI 4" data-search="nrg energy inc | amendment | smartreach outbound nrg energy, inc. amanda lynn" data-acv="649999.92" data-close="2027-06-11" data-name="NRG ENERGY INC | Amendment | Smartreach Outbound" data-owner="Amanda Lynn" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001rvAejIAE/view" target="_blank" rel="noopener">NRG ENERGY INC | Amendment | Smartreach Outbound</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Jun 11, 2027</td>
-<td class="acv-cell">$650,000</td>
-<td>Americas / FSI 4</td>
-<td>Amanda Lynn </td>
-</tr>
-<tr class="account-header" data-acct="984fa815" onclick="toggleAccount('984fa815')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">THE TORONTO-DOMINION BANK</span> <span class="acct-meta">2 deals</span></td>
-<td class="acv-cell acct-total">$524,342</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="984fa815" data-type="" data-stage="3" data-region="Americas / Canada" data-search="the toronto-dominion bank us west |  amendment  | recording uplift the toronto-dominion bank neil balthazaar" data-acv="272254.39" data-close="2026-10-30" data-name="THE TORONTO-DOMINION BANK US WEST |  Amendment  | Recording Uplift" data-owner="Neil Balthazaar" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001y1RxaIAE/view" target="_blank" rel="noopener">THE TORONTO-DOMINION BANK US WEST |  Amendment  | Recording Uplift</a></td>
-<td></td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Oct 30, 2026</td>
-<td class="acv-cell">$272,254<div class="acv-sub">CAD 385,022</div></td>
-<td>Americas / Canada</td>
-<td>Neil Balthazaar </td>
-</tr>
-<tr class="deal-row" data-parent="984fa815" data-type="" data-stage="1" data-region="Americas / Canada" data-search="the toronto-dominion bank us west |  amendment  | additional telephony system the toronto-dominion bank neil balthazaar" data-acv="252087.4" data-close="2027-02-19" data-name="THE TORONTO-DOMINION BANK US WEST |  Amendment  | Additional Telephony System" data-owner="Neil Balthazaar" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002Hllf1IAB/view" target="_blank" rel="noopener">THE TORONTO-DOMINION BANK US WEST |  Amendment  | Additional Telephony System</a></td>
-<td></td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 19, 2027</td>
-<td class="acv-cell">$252,087<div class="acv-sub">CAD 356,502</div></td>
-<td>Americas / Canada</td>
-<td>Neil Balthazaar </td>
-</tr>
-<tr class="account-header" data-acct="3c75eaa2" onclick="toggleAccount('3c75eaa2')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">BANK OF HAWAII CORPORATION</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$514,102</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="3c75eaa2" data-type="Generic" data-stage="3" data-region="Americas / Commercial West 2" data-search="boh - bluip + engagement hub bank of hawaii corporation craig griffin" data-acv="514101.72" data-close="2027-02-19" data-name="BOH - BluIP + Engagement Hub" data-owner="Craig Griffin" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000028QaOoIAK/view" target="_blank" rel="noopener">BOH - BluIP + Engagement Hub</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Feb 19, 2027</td>
-<td class="acv-cell">$514,102</td>
-<td>Americas / Commercial West 2</td>
-<td>Craig Griffin </td>
-</tr>
-<tr class="account-header" data-acct="e551a72d" onclick="toggleAccount('e551a72d')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Servicetitan, Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$491,769</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="e551a72d" data-type="Ticketing" data-stage="2" data-region="Americas / SMB West" data-search="servicetitan | cxone + cognigy | 150 | rfp servicetitan, inc. cody lauder" data-acv="491769.36" data-close="2027-01-31" data-name="ServiceTitan | CXone + Cognigy | 150 | RFP" data-owner="Cody Lauder" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001iUpqAAE/view" target="_blank" rel="noopener">ServiceTitan | CXone + Cognigy | 150 | RFP</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jan 31, 2027</td>
-<td class="acv-cell">$491,769</td>
-<td>Americas / SMB West</td>
-<td>Cody Lauder </td>
-</tr>
-<tr class="account-header" data-acct="1691bb54" onclick="toggleAccount('1691bb54')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">AMERISOURCEBERGEN CORPORATION</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$456,695</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="1691bb54" data-type="Generic" data-stage="3" data-region="Americas / FSI 4" data-search="amerisourcebergen | playback portal cloud migration amerisourcebergen corporation ryan teague" data-acv="456694.8" data-close="2026-12-18" data-name="AmerisourceBergen | Playback Portal Cloud Migration" data-owner="Ryan Teague" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001LULtAAO/view" target="_blank" rel="noopener">AmerisourceBergen | Playback Portal Cloud Migration</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Dec 18, 2026</td>
-<td class="acv-cell">$456,695</td>
-<td>Americas / FSI 4</td>
-<td>Ryan Teague </td>
-</tr>
-<tr class="account-header" data-acct="25d5b165" onclick="toggleAccount('25d5b165')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">First Advantage Corporation</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$438,000</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="25d5b165" data-type="Ticketing" data-stage="3" data-region="Playvox" data-search="first advantage | cxone | qm | 1000 first advantage corporation kyle goodmanson" data-acv="438000" data-close="2026-10-14" data-name="First Advantage | CXone | QM | 1000" data-owner="Kyle Goodmanson" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001h9rztIAA/view" target="_blank" rel="noopener">First Advantage | CXone | QM | 1000</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Oct 14, 2026</td>
-<td class="acv-cell">$438,000</td>
-<td>Playvox</td>
-<td>Kyle Goodmanson </td>
-</tr>
-<tr class="account-header" data-acct="fa2c29b8" onclick="toggleAccount('fa2c29b8')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">NELNET, INC.</span> <span class="acct-meta">3 deals</span></td>
-<td class="acv-cell acct-total">$437,304</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="fa2c29b8" data-type="Generic" data-stage="1" data-region="Americas / FSI 1" data-search="nelnet enterprise |  amendment  | cognigy upsell from autopilot nelnet, inc. casey jones" data-acv="200001.84" data-close="2026-12-31" data-name="NELNET ENTERPRISE |  Amendment  | Cognigy Upsell from Autopilot" data-owner="Casey Jones" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000004IzVlAAK/view" target="_blank" rel="noopener">NELNET ENTERPRISE |  Amendment  | Cognigy Upsell from Autopilot</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Dec 31, 2026</td>
-<td class="acv-cell">$200,002</td>
-<td>Americas / FSI 1</td>
-<td>Casey Jones </td>
-</tr>
-<tr class="deal-row" data-parent="fa2c29b8" data-type="Generic" data-stage="1" data-region="Americas / FSI 1" data-search="nelnet enterprise |  amendment  | auto score 83k p/m nelnet, inc. casey jones" data-acv="119999.52" data-close="2027-02-12" data-name="NELNET ENTERPRISE |  Amendment  | Auto score 83k p/m" data-owner="Casey Jones" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002h7OTgIAM/view" target="_blank" rel="noopener">NELNET ENTERPRISE |  Amendment  | Auto score 83k p/m</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 12, 2027</td>
-<td class="acv-cell">$120,000</td>
-<td>Americas / FSI 1</td>
-<td>Casey Jones </td>
-</tr>
-<tr class="deal-row" data-parent="fa2c29b8" data-type="Generic" data-stage="1" data-region="Americas / FSI 1" data-search="nelnet enterprise |  amendment  | fm - 850 nelnet, inc. casey jones" data-acv="117303" data-close="2027-02-26" data-name="NELNET ENTERPRISE |  Amendment  | FM - 850" data-owner="Casey Jones" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002h6WA0IAM/view" target="_blank" rel="noopener">NELNET ENTERPRISE |  Amendment  | FM - 850</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 26, 2027</td>
-<td class="acv-cell">$117,303</td>
-<td>Americas / FSI 1</td>
-<td>Casey Jones </td>
-</tr>
-<tr class="account-header" data-acct="1151f4e5" onclick="toggleAccount('1151f4e5')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">XCEL ENERGY INC.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$388,027</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="1151f4e5" data-type="Generic" data-stage="3" data-region="Americas / Commercial Central 2" data-search="xcel energy | cxone | quality management | 450 xcel energy inc. gannon harris" data-acv="388026.6" data-close="2027-05-28" data-name="Xcel Energy | CXone | Quality Management | 450" data-owner="Gannon Harris" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002JQwNlIAL/view" target="_blank" rel="noopener">Xcel Energy | CXone | Quality Management | 450</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>May 28, 2027</td>
-<td class="acv-cell">$388,027</td>
-<td>Americas / Commercial Central 2</td>
-<td>Gannon Harris </td>
-</tr>
-<tr class="account-header" data-acct="6ebdc427" onclick="toggleAccount('6ebdc427')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Mariner Finance, LLC</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$323,533</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="6ebdc427" data-type="SmartReach" data-stage="3" data-region="Americas / FSI 3" data-search="mariner finance  llc |  amendment  | new lob | ring central | smart reach | 500 mariner finance, llc greg koehler" data-acv="323532.6" data-close="2027-09-01" data-name="MARINER FINANCE  LLC |  Amendment  | New LOB | Ring Central | Smart Reach | 500" data-owner="Greg Koehler" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002AZKI2IAP/view" target="_blank" rel="noopener">MARINER FINANCE  LLC |  Amendment  | New LOB | Ring Central | Smart Reach | 500</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Sep 1, 2027</td>
-<td class="acv-cell">$323,533</td>
-<td>Americas / FSI 3</td>
-<td>Greg Koehler </td>
-</tr>
-<tr class="account-header" data-acct="d20dee8b" onclick="toggleAccount('d20dee8b')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">McGraw Hill Education, Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$253,611</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="d20dee8b" data-type="Generic" data-stage="3" data-region="Americas / Enterprise East" data-search="mcgraw-hill education l cxone new bu direct from vz | 350 concurrent mcgraw hill education, inc. sarah hill" data-acv="253611" data-close="2026-12-18" data-name="McGraw-Hill Education l CXone New BU Direct from VZ | 350 Concurrent" data-owner="Sarah Hill" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000028pPMyIAM/view" target="_blank" rel="noopener">McGraw-Hill Education l CXone New BU Direct from VZ | 350 Concurrent</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Dec 18, 2026</td>
-<td class="acv-cell">$253,611</td>
-<td>Americas / Enterprise East</td>
-<td>Sarah Hill </td>
-</tr>
-<tr class="account-header" data-acct="d88ce0db" onclick="toggleAccount('d88ce0db')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">New Jersey Manufacturers Insurance Co</span> <span class="acct-meta">2 deals</span></td>
-<td class="acv-cell acct-total">$227,777</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="d88ce0db" data-type="Generic" data-stage="1" data-region="Americas / FSI 3" data-search="njm insurance group |  amendment  | bcp project new jersey manufacturers insurance co mike elkind" data-acv="166933.2" data-close="2027-03-22" data-name="NJM INSURANCE GROUP |  Amendment  | BCP Project" data-owner="Mike Elkind" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001mGptAAE/view" target="_blank" rel="noopener">NJM INSURANCE GROUP |  Amendment  | BCP Project</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Mar 22, 2027</td>
-<td class="acv-cell">$166,933</td>
-<td>Americas / FSI 3</td>
-<td>Mike Elkind </td>
-</tr>
-<tr class="deal-row" data-parent="d88ce0db" data-type="Generic" data-stage="2" data-region="Americas / FSI 3" data-search="njm insurance group |  amendment  | voc new jersey manufacturers insurance co mike elkind" data-acv="60843.96" data-close="2027-06-16" data-name="NJM INSURANCE GROUP |  Amendment  | VOC" data-owner="Mike Elkind" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000002k5RlAAI/view" target="_blank" rel="noopener">NJM INSURANCE GROUP |  Amendment  | VOC</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jun 16, 2027</td>
-<td class="acv-cell">$60,844</td>
-<td>Americas / FSI 3</td>
-<td>Mike Elkind </td>
-</tr>
-<tr class="account-header" data-acct="78afd7d5" onclick="toggleAccount('78afd7d5')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">EMPIRE TODAY, LLC</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$210,104</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="78afd7d5" data-type="SmartReach" data-stage="2" data-region="Americas / Commercial Central 1" data-search="empire today llc | smartreach | 125k voice | 500k sms empire today, llc grayson sims" data-acv="210103.56" data-close="2027-01-31" data-name="EMPIRE TODAY LLC | SmartReach | 125k Voice | 500k SMS" data-owner="Grayson Sims" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002O3cMwIAJ/view" target="_blank" rel="noopener">EMPIRE TODAY LLC | SmartReach | 125k Voice | 500k SMS</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jan 31, 2027</td>
-<td class="acv-cell">$210,104</td>
-<td>Americas / Commercial Central 1</td>
-<td>Grayson Sims </td>
-</tr>
-<tr class="account-header" data-acct="afec359d" onclick="toggleAccount('afec359d')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">PUBLIC STORAGE</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$210,000</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="afec359d" data-type="" data-stage="1" data-region="Americas / Enterprise West" data-search="public storage operating company |  amendment  | copilot public storage vanessa crook" data-acv="210000" data-close="2027-02-13" data-name="PUBLIC STORAGE OPERATING COMPANY |  Amendment  | Copilot" data-owner="Vanessa Crook" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000044j13AAA/view" target="_blank" rel="noopener">PUBLIC STORAGE OPERATING COMPANY |  Amendment  | Copilot</a></td>
-<td></td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 13, 2027</td>
-<td class="acv-cell">$210,000</td>
-<td>Americas / Enterprise West</td>
-<td>Vanessa Crook </td>
-</tr>
-<tr class="account-header" data-acct="a1af2e2a" onclick="toggleAccount('a1af2e2a')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">AMERICAN FAMILY MUTUAL INSURANCE COMPANY</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$208,505</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="a1af2e2a" data-type="Generic" data-stage="3" data-region="Americas / FSI 4" data-search="american family | cxone | cloud product | 500 american family mutual insurance company michael carlin" data-acv="208505.4" data-close="2027-01-30" data-name="American Family | CXone | Cloud Product | 500" data-owner="Michael Carlin" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000kcrtAAA/view" target="_blank" rel="noopener">American Family | CXone | Cloud Product | 500</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Jan 30, 2027</td>
-<td class="acv-cell">$208,505</td>
-<td>Americas / FSI 4</td>
-<td>Michael Carlin </td>
-</tr>
-<tr class="account-header" data-acct="2b25c359" onclick="toggleAccount('2b25c359')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">ABOUND HEALTH, LLC</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$186,512</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="2b25c359" data-type="SmartReach" data-stage="3" data-region="Americas / Diversified BPO" data-search="abound health | cxone, co-pilot, wfm, ia | 60 abound health, llc claire bradbury" data-acv="186511.56" data-close="2027-03-26" data-name="Abound Health | CXONE, Co-Pilot, WFM, IA | 60" data-owner="Claire Bradbury" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000qO4fAAE/view" target="_blank" rel="noopener">Abound Health | CXONE, Co-Pilot, WFM, IA | 60</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Mar 26, 2027</td>
-<td class="acv-cell">$186,512</td>
-<td>Americas / Diversified BPO</td>
-<td>Claire Bradbury </td>
-</tr>
-<tr class="account-header" data-acct="51fc7169" onclick="toggleAccount('51fc7169')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">AON PLC</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$184,831</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="51fc7169" data-type="SmartReach" data-stage="1" data-region="Americas / FSI 1" data-search="aon service corporation - north america |  amendment  | 30 addtl voice licenses/smartreach/nexidia aon plc alex scharwath" data-acv="184831.3" data-close="2027-08-24" data-name="AON SERVICE CORPORATION - NORTH AMERICA |  Amendment  | 30 addtl voice licenses/SmartReach/Nexidia" data-owner="Alex Scharwath" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002JsfLbIAJ/view" target="_blank" rel="noopener">AON SERVICE CORPORATION - NORTH AMERICA |  Amendment  | 30 addtl voice licenses/SmartReach/Nexidia</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Aug 24, 2027</td>
-<td class="acv-cell">$184,831</td>
-<td>Americas / FSI 1</td>
-<td>Alex Scharwath </td>
-</tr>
-<tr class="account-header" data-acct="23291011" onclick="toggleAccount('23291011')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Blackbaud, Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$184,800</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="23291011" data-type="Ticketing" data-stage="2" data-region="Americas / Commercial East 4" data-search="blackbaud | cxone qm | 350 blackbaud, inc. jack whiteman" data-acv="184800" data-close="2027-03-31" data-name="Blackbaud | CXone QM | 350" data-owner="Jack Whiteman" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001ZNftpIAD/view" target="_blank" rel="noopener">Blackbaud | CXone QM | 350</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Mar 31, 2027</td>
-<td class="acv-cell">$184,800</td>
-<td>Americas / Commercial East 4</td>
-<td>Jack Whiteman </td>
-</tr>
-<tr class="account-header" data-acct="b117ffc4" onclick="toggleAccount('b117ffc4')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">CEP DU PMU</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$180,919</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="b117ffc4" data-type="Generic" data-stage="2" data-region="International / France" data-search="pmu - ai-based qm - 300 cep du pmu stephan rouillon" data-acv="180919.49" data-close="2027-12-07" data-name="PMU - AI-based QM - 300" data-owner="Stephan Rouillon" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001p2yTAAQ/view" target="_blank" rel="noopener">PMU - AI-based QM - 300</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Dec 7, 2027</td>
-<td class="acv-cell">$180,919<div class="acv-sub">EUR 160,982</div></td>
-<td>International / France</td>
-<td>Stephan Rouillon </td>
-</tr>
-<tr class="account-header" data-acct="ff99bd57" onclick="toggleAccount('ff99bd57')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">CopilotIQ, Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$177,536</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="ff99bd57" data-type="Ticketing,SmartReach" data-stage="2" data-region="Americas / SMB Verticals" data-search="copilotiq | outbound engagement | 75 copilotiq, inc. jason goates" data-acv="177536.28" data-close="2026-11-27" data-name="CopilotIQ | Outbound Engagement | 75" data-owner="Jason Goates" data-type-sort="Ticketing, SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000020wAwAAI/view" target="_blank" rel="noopener">CopilotIQ | Outbound Engagement | 75</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Nov 27, 2026</td>
-<td class="acv-cell">$177,536</td>
-<td>Americas / SMB Verticals</td>
-<td>Jason Goates </td>
-</tr>
-<tr class="account-header" data-acct="98fb0ace" onclick="toggleAccount('98fb0ace')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">OneMain Financial</span> <span class="acct-meta">2 deals</span></td>
-<td class="acv-cell acct-total">$146,496</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="98fb0ace" data-type="SmartReach" data-stage="3" data-region="Americas / Enterprise Central" data-search="onemain financial - amendment - load and performance testing + cyara tools onemain financial luke johnson" data-acv="0" data-close="2026-11-20" data-name="OneMain Financial - Amendment - Load and Performance Testing + Cyara Tools" data-owner="Luke Johnson" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000OhjlAAC/view" target="_blank" rel="noopener">OneMain Financial - Amendment - Load and Performance Testing + Cyara Tools</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Nov 20, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / Enterprise Central</td>
-<td>Luke Johnson </td>
-</tr>
-<tr class="deal-row" data-parent="98fb0ace" data-type="SmartReach" data-stage="4" data-region="Americas / Enterprise Central" data-search="onemain financial - amendment 16 - iex/eem expansion to autos group - 310 users onemain financial luke johnson" data-acv="146496" data-close="2026-12-11" data-name="OneMain Financial - Amendment 16 - IEX/EEM Expansion to Autos Group - 310 Users" data-owner="Luke Johnson" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002Z2d50IAB/view" target="_blank" rel="noopener">OneMain Financial - Amendment 16 - IEX/EEM Expansion to Autos Group - 310 Users</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Dec 11, 2026</td>
-<td class="acv-cell">$146,496</td>
-<td>Americas / Enterprise Central</td>
-<td>Luke Johnson </td>
-</tr>
-<tr class="account-header" data-acct="bcbac4d9" onclick="toggleAccount('bcbac4d9')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">NTUC ENTERPRISE CO-OPERATIVE LTD</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$141,008</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="bcbac4d9" data-type="Ticketing" data-stage="4" data-region="International / SEA" data-search="ntuc fairprice | sg | deloitte | cxone | 100 ntuc enterprise co-operative ltd gabriel ng" data-acv="141007.8" data-close="2027-07-30" data-name="NTUC FairPrice | SG | Deloitte | CXone | 100" data-owner="Gabriel Ng" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000027E7shIAC/view" target="_blank" rel="noopener">NTUC FairPrice | SG | Deloitte | CXone | 100</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Jul 30, 2027</td>
-<td class="acv-cell">$141,008</td>
-<td>International / SEA</td>
-<td>Gabriel Ng </td>
-</tr>
-<tr class="account-header" data-acct="6831b32f" onclick="toggleAccount('6831b32f')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">BCB HOLDINGS (CHESHIRE) LIMITED</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$138,670</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="6831b32f" data-type="SmartReach" data-stage="3" data-region="Americas / Commercial West 3" data-search="tfli | smartreach | 30 bcb holdings (cheshire) limited jace webb" data-acv="138670.08" data-close="2027-01-31" data-name="TFLI | Smartreach | 30" data-owner="Jace Webb" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001TjsRAAS/view" target="_blank" rel="noopener">TFLI | Smartreach | 30</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Jan 31, 2027</td>
-<td class="acv-cell">$138,670</td>
-<td>Americas / Commercial West 3</td>
-<td>Jace Webb </td>
-</tr>
-<tr class="account-header" data-acct="32164ec6" onclick="toggleAccount('32164ec6')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Impulse Dynamics (USA) Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$132,772</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="32164ec6" data-type="SmartReach" data-stage="2" data-region="Americas / SMB East" data-search="impulse dynamics | bridgepointe | cxone | skyward | core + ia+ qma + copilot | 50 impulse dynamics (usa) inc. ryan horne" data-acv="132772.2" data-close="2027-12-31" data-name="Impulse Dynamics | Bridgepointe | CXone | Skyward | Core + IA+ QMA + Copilot | 50" data-owner="Ryan Horne" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002KeuwbIAB/view" target="_blank" rel="noopener">Impulse Dynamics | Bridgepointe | CXone | Skyward | Core + IA+ QMA + Copilot | 50</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Dec 31, 2027</td>
-<td class="acv-cell">$132,772</td>
-<td>Americas / SMB East</td>
-<td>Ryan Horne </td>
-</tr>
-<tr class="account-header" data-acct="0da96b19" onclick="toggleAccount('0da96b19')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Spoton Corporation</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$131,184</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="0da96b19" data-type="Ticketing" data-stage="4" data-region="Americas / Commercial West 3" data-search="spoton corporation |  amendment  | advanced qm + advanced ia spoton corporation larissa bakaldin" data-acv="131184" data-close="2027-02-19" data-name="SPOTON CORPORATION |  Amendment  | Advanced QM + Advanced IA" data-owner="Larissa Bakaldin" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002hmK13IAE/view" target="_blank" rel="noopener">SPOTON CORPORATION |  Amendment  | Advanced QM + Advanced IA</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Feb 19, 2027</td>
-<td class="acv-cell">$131,184</td>
-<td>Americas / Commercial West 3</td>
-<td>Larissa Bakaldin </td>
-</tr>
-<tr class="account-header" data-acct="427ca7aa" onclick="toggleAccount('427ca7aa')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">NIKKEI INC.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$109,225</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="427ca7aa" data-type="Ticketing,Generic" data-stage="3" data-region="International / UK&amp;I - 5" data-search="financial times | wfm, iaa + qma nikkei inc. caroline burns" data-acv="109225.11" data-close="2027-02-08" data-name="Financial Times | WFM, IAA + QMA" data-owner="Caroline Burns" data-type-sort="Ticketing, Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002eKmOeIAK/view" target="_blank" rel="noopener">Financial Times | WFM, IAA + QMA</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Feb 8, 2027</td>
-<td class="acv-cell">$109,225<div class="acv-sub">GBP 81,952</div></td>
-<td>International / UK&amp;I - 5</td>
-<td>Caroline Burns </td>
-</tr>
-<tr class="account-header" data-acct="8d976f3b" onclick="toggleAccount('8d976f3b')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">ANDREW K. INVESTMENTS PTY LTD</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$79,741</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="8d976f3b" data-type="Generic" data-stage="4" data-region="International / ANZ - 2" data-search="kennards hire | australia | generation-e | qm autoscore andrew k. investments pty ltd jarrah sladek" data-acv="79741.38" data-close="2027-03-30" data-name="Kennards Hire | Australia | Generation-e | QM Autoscore" data-owner="Jarrah Sladek" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002M5M75IAF/view" target="_blank" rel="noopener">Kennards Hire | Australia | Generation-e | QM Autoscore</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Mar 30, 2027</td>
-<td class="acv-cell">$79,741<div class="acv-sub">AUD 114,836</div></td>
-<td>International / ANZ - 2</td>
-<td>Jarrah Sladek </td>
-</tr>
-<tr class="account-header" data-acct="51c130b2" onclick="toggleAccount('51c130b2')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">ASAHI HOLDINGS (AUSTRALIA) PTY LTD</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$78,391</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="51c130b2" data-type="AMC" data-stage="3" data-region="International / ANZ - 2" data-search="asahi holdings, australia | gene| engagementhub | iaa and aqm | 62 asahi holdings (australia) pty ltd jarrah sladek" data-acv="78390.81" data-close="2027-05-20" data-name="Asahi Holdings, Australia | GenE| EngagementHub | IAA and AQM | 62" data-owner="Jarrah Sladek" data-type-sort="AMC">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000026ypXsIAI/view" target="_blank" rel="noopener">Asahi Holdings, Australia | GenE| EngagementHub | IAA and AQM | 62</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#6100FF1a;color:#6100FF;border:1px solid #6100FF55;">AMC</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>May 20, 2027</td>
-<td class="acv-cell">$78,391<div class="acv-sub">AUD 112,891</div></td>
-<td>International / ANZ - 2</td>
-<td>Jarrah Sladek </td>
-</tr>
-<tr class="account-header" data-acct="beec8ca7" onclick="toggleAccount('beec8ca7')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Infotel International Limited</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$75,115</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="beec8ca7" data-type="Generic" data-stage="5" data-region="Americas / Diversified BPO" data-search="strategic link - add cxone qm and ia infotel international limited ben varela" data-acv="75114.6" data-close="2026-10-30" data-name="Strategic Link - Add CXone QM and IA" data-owner="Ben Varela" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002araPNIAY/view" target="_blank" rel="noopener">Strategic Link - Add CXone QM and IA</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-green"><span class="stage-num">5</span> · Proposal / Negotiation</span></td>
-<td>Oct 30, 2026</td>
-<td class="acv-cell">$75,115</td>
-<td>Americas / Diversified BPO</td>
-<td>Ben Varela </td>
-</tr>
-<tr class="account-header" data-acct="082a7139" onclick="toggleAccount('082a7139')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">ABSA GROUP LTD</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$73,390</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="082a7139" data-type="AMC,Generic" data-stage="2" data-region="International / Africa &amp; Israel" data-search="absa - qa and ai for rbb absa group ltd bridgitte fairon" data-acv="73389.6" data-close="2027-07-27" data-name="ABSA - QA and AI for RBB" data-owner="Bridgitte Fairon" data-type-sort="AMC, Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002F17nSIAR/view" target="_blank" rel="noopener">ABSA - QA and AI for RBB</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#6100FF1a;color:#6100FF;border:1px solid #6100FF55;">AMC</span><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jul 27, 2027</td>
-<td class="acv-cell">$73,390</td>
-<td>International / Africa &amp; Israel</td>
-<td>Bridgitte Fairon </td>
-</tr>
-<tr class="account-header" data-acct="6e412c25" onclick="toggleAccount('6e412c25')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">H. E. BUTT GROCERY COMPANY</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$66,600</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="6e412c25" data-type="Ticketing" data-stage="1" data-region="Americas / Enterprise Central" data-search="favor delivery - pv to cxone qm migration - 150 users h. e. butt grocery company luke johnson" data-acv="66600" data-close="2027-06-25" data-name="Favor Delivery - PV to CXone QM Migration - 150 Users" data-owner="Luke Johnson" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002O3U9EIAV/view" target="_blank" rel="noopener">Favor Delivery - PV to CXone QM Migration - 150 Users</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Jun 25, 2027</td>
-<td class="acv-cell">$66,600</td>
-<td>Americas / Enterprise Central</td>
-<td>Luke Johnson </td>
-</tr>
-<tr class="account-header" data-acct="b87fd4bc" onclick="toggleAccount('b87fd4bc')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">American Dream Auto Protect Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$55,749</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="b87fd4bc" data-type="SmartReach" data-stage="1" data-region="Americas / SMB East" data-search="american dream auto protect inc. |  amendment  | 2026-10-13 american dream auto protect inc. ryan horne" data-acv="55749.48" data-close="2026-12-31" data-name="AMERICAN DREAM AUTO PROTECT INC. |  Amendment  | 2026-10-13" data-owner="Ryan Horne" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000042ObpAAE/view" target="_blank" rel="noopener">AMERICAN DREAM AUTO PROTECT INC. |  Amendment  | 2026-10-13</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Dec 31, 2026</td>
-<td class="acv-cell">$55,749</td>
-<td>Americas / SMB East</td>
-<td>Ryan Horne </td>
-</tr>
-<tr class="account-header" data-acct="95a7007e" onclick="toggleAccount('95a7007e')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">TELEPHONE AND DATA SYSTEMS, INC.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$34,341</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="95a7007e" data-type="SmartReach" data-stage="4" data-region="Americas / Commercial Central 3" data-search="tds telecom sms technician comms (cognigy) |  amendment  | 2026-09-02 telephone and data systems, inc. todd brown" data-acv="34341.36" data-close="2027-02-22" data-name="TDS TELECOM SMS Technician Comms (Cognigy) |  Amendment  | 2026-09-02" data-owner="Todd Brown" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000015uSQAAY/view" target="_blank" rel="noopener">TDS TELECOM SMS Technician Comms (Cognigy) |  Amendment  | 2026-09-02</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Feb 22, 2027</td>
-<td class="acv-cell">$34,341</td>
-<td>Americas / Commercial Central 3</td>
-<td>Todd Brown </td>
-</tr>
-<tr class="account-header" data-acct="95072b0d" onclick="toggleAccount('95072b0d')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Brennan &amp; Clark, Ltd., L.L.C.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$23,683</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="95072b0d" data-type="Ticketing,Generic" data-stage="2" data-region="Americas / SMB Central" data-search="brennan &amp; clark | cxone | 20 brennan &amp; clark, ltd., l.l.c. tyler hansen" data-acv="23682.6" data-close="2026-11-16" data-name="Brennan &amp; Clark | CXone | 20" data-owner="Tyler Hansen" data-type-sort="Ticketing, Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000002fyIPAAY/view" target="_blank" rel="noopener">Brennan &amp; Clark | CXone | 20</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Nov 16, 2026</td>
-<td class="acv-cell">$23,683</td>
-<td>Americas / SMB Central</td>
-<td>Tyler Hansen </td>
-</tr>
-<tr class="account-header" data-acct="8636b586" onclick="toggleAccount('8636b586')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Kryterion</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$6,048</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="8636b586" data-type="" data-stage="4" data-region="Americas / Commercial West 2" data-search="kryterion | amendment | qma extension kryterion scott steinert" data-acv="6048" data-close="2027-01-14" data-name="KRYTERION | Amendment | QMA Extension" data-owner="Scott Steinert" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000ciMcAAI/view" target="_blank" rel="noopener">KRYTERION | Amendment | QMA Extension</a></td>
-<td></td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Jan 14, 2027</td>
-<td class="acv-cell">$6,048</td>
-<td>Americas / Commercial West 2</td>
-<td>Scott Steinert </td>
-</tr>
-<tr class="account-header" data-acct="a7d69545" onclick="toggleAccount('a7d69545')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">SWISS RE AG</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$5,664</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="a7d69545" data-type="Ticketing" data-stage="1" data-region="International / DACH" data-search="swiss re | amendment | cx1 | direct | integration of 3rd party snow tickets with existing cxone qm swiss re ag florian rech" data-acv="5664.19" data-close="2027-03-26" data-name="Swiss re | Amendment | CX1 | Direct | Integration of 3rd Party SNOW Tickets with existing CXone QM" data-owner="Florian Rech" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000005RYCPAA4/view" target="_blank" rel="noopener">Swiss re | Amendment | CX1 | Direct | Integration of 3rd Party SNOW Tickets with existing CXone QM</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Mar 26, 2027</td>
-<td class="acv-cell">$5,664<div class="acv-sub">EUR 5,040</div></td>
-<td>International / DACH</td>
-<td>Florian Rech </td>
-</tr>
-<tr class="account-header" data-acct="c32e4e44" onclick="toggleAccount('c32e4e44')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Itochu Techno-Solutions Corporation</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$0</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="c32e4e44" data-type="Generic" data-stage="5" data-region="Japan" data-search="itochu techno-solutions demo bu |  amendment  | interaction hub, engagement hub, cognigy new sku itochu techno-solutions corporation tomoyo michishita" data-acv="0" data-close="2026-11-02" data-name="ITOCHU TECHNO-SOLUTIONS DEMO BU |  Amendment  | Interaction Hub, Engagement Hub, Cognigy New SKU" data-owner="Tomoyo Michishita" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002hnWctIAE/view" target="_blank" rel="noopener">ITOCHU TECHNO-SOLUTIONS DEMO BU |  Amendment  | Interaction Hub, Engagement Hub, Cognigy New SKU</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-green"><span class="stage-num">5</span> · Proposal / Negotiation</span></td>
-<td>Nov 2, 2026</td>
-<td class="acv-cell">$0<div class="acv-sub">JPY 0</div></td>
-<td>Japan</td>
-<td>Tomoyo Michishita </td>
-</tr>
-<tr class="account-header" data-acct="4d22fc6d" onclick="toggleAccount('4d22fc6d')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Open Network Exchange Inc</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$0</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="4d22fc6d" data-type="" data-stage="1" data-region="Enterprise West" data-search="open network exchange |  amendment  | 2026-10-08 open network exchange inc cori walker" data-acv="0" data-close="2027-01-08" data-name="OPEN NETWORK EXCHANGE |  Amendment  | 2026-10-08" data-owner="Cori Walker" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000003i5rvAAA/view" target="_blank" rel="noopener">OPEN NETWORK EXCHANGE |  Amendment  | 2026-10-08</a></td>
-<td></td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Jan 8, 2027</td>
-<td class="acv-cell">$0</td>
-<td>Enterprise West</td>
-<td>Cori Walker </td>
-</tr>
-<tr class="account-header" data-acct="ab4a0e8f" onclick="toggleAccount('ab4a0e8f')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">LENOVO GROUP LIMITED</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$0</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="ab4a0e8f" data-type="SmartReach" data-stage="2" data-region="Americas / Enterprise AI Acquisition" data-search="lenovo group ltd. |  amendment  | customer care poc i vrs - connectivity - additional skus lenovo group limited jim kelley" data-acv="0" data-close="2026-11-21" data-name="LENOVO GROUP LTD. |  Amendment  | Customer Care POC I VRS - Connectivity - Additional SKUs" data-owner="Jim Kelley" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000041eAnAAI/view" target="_blank" rel="noopener">LENOVO GROUP LTD. |  Amendment  | Customer Care POC I VRS - Connectivity - Additional SKUs</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Nov 21, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / Enterprise AI Acquisition</td>
-<td>Jim Kelley </td>
-</tr>
-<tr class="account-header" data-acct="0eef1bb5" onclick="toggleAccount('0eef1bb5')">
-<td colspan="5"><span class="caret">▾</span> <span class="acct-name">Makes Cents Inc.</span> <span class="acct-meta">1 deal</span></td>
-<td class="acv-cell acct-total">$0</td>
-<td colspan="2"></td>
-</tr>
-<tr class="deal-row" data-parent="0eef1bb5" data-type="SmartReach" data-stage="1" data-region="Americas / SMB Central" data-search="makes cents inc. |  amendment  | 2026-10-26 makes cents inc. teejay johnson" data-acv="0" data-close="2026-11-20" data-name="MAKES CENTS INC. |  Amendment  | 2026-10-26" data-owner="TeeJay Johnson" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000005WullAAC/view" target="_blank" rel="noopener">MAKES CENTS INC. |  Amendment  | 2026-10-26</a></td>
-<td></td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Nov 20, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / SMB Central</td>
-<td>TeeJay Johnson </td>
-</tr>
-        </tbody>
-        <tbody id="flatBody" style="display:none;">
-<tr class="deal-row" data-type="SmartReach" data-stage="2" data-region="International / UK&amp;I - 1" data-search="sky | cxone | rfp | 13000 sky plc  jenna shanks" data-acv="5492422.07" data-close="2027-10-13" data-name="SKY | CXone | RFP | 13000" data-owner="Jenna Shanks" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00000qGNVlIAO/view" target="_blank" rel="noopener">SKY | CXone | RFP | 13000</a></td>
-<td class="acct-cell">Sky plc </td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Oct 13, 2027</td>
-<td class="acv-cell">$5,492,422<div class="acv-sub">GBP 4,120,964</div></td>
-<td>International / UK&amp;I - 1</td>
-<td>Jenna Shanks </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="3" data-region="Americas / Federal" data-search="wsp | cisco takeout | cxone | 140 agents wsp global inc jesse dicocco" data-acv="1836636.6" data-close="2028-11-20" data-name="WSP | Cisco Takeout | CXone | 140 Agents" data-owner="Jesse DiCocco" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001NBeD9IAL/view" target="_blank" rel="noopener">WSP | Cisco Takeout | CXone | 140 Agents</a></td>
-<td class="acct-cell">WSP Global Inc</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Nov 20, 2028</td>
-<td class="acv-cell">$1,836,637</td>
-<td>Americas / Federal</td>
-<td>Jesse DiCocco </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="2" data-region="Americas / Commercial East 4" data-search="blackbaud | cxone qm | 350 blackbaud, inc. jack whiteman" data-acv="184800" data-close="2027-03-31" data-name="Blackbaud | CXone QM | 350" data-owner="Jack Whiteman" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001ZNftpIAD/view" target="_blank" rel="noopener">Blackbaud | CXone QM | 350</a></td>
-<td class="acct-cell">Blackbaud, Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Mar 31, 2027</td>
-<td class="acv-cell">$184,800</td>
-<td>Americas / Commercial East 4</td>
-<td>Jack Whiteman </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="3" data-region="Americas / Healthcare 3" data-search="radiology partners | cxone | 200 radiology partners holdings, llc noa nightingale" data-acv="999007.68" data-close="2027-06-17" data-name="Radiology Partners | CXone | 200" data-owner="Noa Nightingale" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001a57q1IAA/view" target="_blank" rel="noopener">Radiology Partners | CXone | 200</a></td>
-<td class="acct-cell">Radiology Partners Holdings, LLC</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Jun 17, 2027</td>
-<td class="acv-cell">$999,008</td>
-<td>Americas / Healthcare 3</td>
-<td>Noa Nightingale </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="3" data-region="Playvox" data-search="first advantage | cxone | qm | 1000 first advantage corporation kyle goodmanson" data-acv="438000" data-close="2026-10-14" data-name="First Advantage | CXone | QM | 1000" data-owner="Kyle Goodmanson" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001h9rztIAA/view" target="_blank" rel="noopener">First Advantage | CXone | QM | 1000</a></td>
-<td class="acct-cell">First Advantage Corporation</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Oct 14, 2026</td>
-<td class="acv-cell">$438,000</td>
-<td>Playvox</td>
-<td>Kyle Goodmanson </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="4" data-region="Americas / FSI 4" data-search="nrg energy inc | amendment | smartreach outbound nrg energy, inc. amanda lynn" data-acv="649999.92" data-close="2027-06-11" data-name="NRG ENERGY INC | Amendment | Smartreach Outbound" data-owner="Amanda Lynn" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001rvAejIAE/view" target="_blank" rel="noopener">NRG ENERGY INC | Amendment | Smartreach Outbound</a></td>
-<td class="acct-cell">NRG ENERGY, INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Jun 11, 2027</td>
-<td class="acv-cell">$650,000</td>
-<td>Americas / FSI 4</td>
-<td>Amanda Lynn </td>
-</tr>
-<tr class="deal-row" data-type="" data-stage="3" data-region="Americas / Canada" data-search="the toronto-dominion bank us west |  amendment  | recording uplift the toronto-dominion bank neil balthazaar" data-acv="272254.39" data-close="2026-10-30" data-name="THE TORONTO-DOMINION BANK US WEST |  Amendment  | Recording Uplift" data-owner="Neil Balthazaar" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00001y1RxaIAE/view" target="_blank" rel="noopener">THE TORONTO-DOMINION BANK US WEST |  Amendment  | Recording Uplift</a></td>
-<td class="acct-cell">THE TORONTO-DOMINION BANK</td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Oct 30, 2026</td>
-<td class="acv-cell">$272,254<div class="acv-sub">CAD 385,022</div></td>
-<td>Americas / Canada</td>
-<td>Neil Balthazaar </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="2" data-region="International / Africa &amp; Israel" data-search="bank discount | orange | rfp i cxone | ccaas solution | 3,040 agents israel discount bank limited eytan chen" data-acv="3809834.04" data-close="2027-02-15" data-name="Bank Discount | Orange | RFP I CXone | CCaaS solution | 3,040 agents" data-owner="Eytan Chen" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000021JjflIAC/view" target="_blank" rel="noopener">Bank Discount | Orange | RFP I CXone | CCaaS solution | 3,040 agents</a></td>
-<td class="acct-cell">ISRAEL DISCOUNT BANK LIMITED</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Feb 15, 2027</td>
-<td class="acv-cell">$3,809,834</td>
-<td>International / Africa &amp; Israel</td>
-<td>Eytan Chen </td>
-</tr>
-<tr class="deal-row" data-type="AMC" data-stage="3" data-region="International / ANZ - 2" data-search="asahi holdings, australia | gene| engagementhub | iaa and aqm | 62 asahi holdings (australia) pty ltd jarrah sladek" data-acv="78390.81" data-close="2027-05-20" data-name="Asahi Holdings, Australia | GenE| EngagementHub | IAA and AQM | 62" data-owner="Jarrah Sladek" data-type-sort="AMC">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000026ypXsIAI/view" target="_blank" rel="noopener">Asahi Holdings, Australia | GenE| EngagementHub | IAA and AQM | 62</a></td>
-<td class="acct-cell">ASAHI HOLDINGS (AUSTRALIA) PTY LTD</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#6100FF1a;color:#6100FF;border:1px solid #6100FF55;">AMC</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>May 20, 2027</td>
-<td class="acv-cell">$78,391<div class="acv-sub">AUD 112,891</div></td>
-<td>International / ANZ - 2</td>
-<td>Jarrah Sladek </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="4" data-region="International / SEA" data-search="ntuc fairprice | sg | deloitte | cxone | 100 ntuc enterprise co-operative ltd gabriel ng" data-acv="141007.8" data-close="2027-07-30" data-name="NTUC FairPrice | SG | Deloitte | CXone | 100" data-owner="Gabriel Ng" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000027E7shIAC/view" target="_blank" rel="noopener">NTUC FairPrice | SG | Deloitte | CXone | 100</a></td>
-<td class="acct-cell">NTUC ENTERPRISE CO-OPERATIVE LTD</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Jul 30, 2027</td>
-<td class="acv-cell">$141,008</td>
-<td>International / SEA</td>
-<td>Gabriel Ng </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="3" data-region="Americas / Commercial West 2" data-search="boh - bluip + engagement hub bank of hawaii corporation craig griffin" data-acv="514101.72" data-close="2027-02-19" data-name="BOH - BluIP + Engagement Hub" data-owner="Craig Griffin" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000028QaOoIAK/view" target="_blank" rel="noopener">BOH - BluIP + Engagement Hub</a></td>
-<td class="acct-cell">BANK OF HAWAII CORPORATION</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Feb 19, 2027</td>
-<td class="acv-cell">$514,102</td>
-<td>Americas / Commercial West 2</td>
-<td>Craig Griffin </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="3" data-region="Americas / Enterprise East" data-search="mcgraw-hill education l cxone new bu direct from vz | 350 concurrent mcgraw hill education, inc. sarah hill" data-acv="253611" data-close="2026-12-18" data-name="McGraw-Hill Education l CXone New BU Direct from VZ | 350 Concurrent" data-owner="Sarah Hill" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui000028pPMyIAM/view" target="_blank" rel="noopener">McGraw-Hill Education l CXone New BU Direct from VZ | 350 Concurrent</a></td>
-<td class="acct-cell">McGraw Hill Education, Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Dec 18, 2026</td>
-<td class="acv-cell">$253,611</td>
-<td>Americas / Enterprise East</td>
-<td>Sarah Hill </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="3" data-region="Americas / FSI 3" data-search="mariner finance  llc |  amendment  | new lob | ring central | smart reach | 500 mariner finance, llc greg koehler" data-acv="323532.6" data-close="2027-09-01" data-name="MARINER FINANCE  LLC |  Amendment  | New LOB | Ring Central | Smart Reach | 500" data-owner="Greg Koehler" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002AZKI2IAP/view" target="_blank" rel="noopener">MARINER FINANCE  LLC |  Amendment  | New LOB | Ring Central | Smart Reach | 500</a></td>
-<td class="acct-cell">Mariner Finance, LLC</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Sep 1, 2027</td>
-<td class="acv-cell">$323,533</td>
-<td>Americas / FSI 3</td>
-<td>Greg Koehler </td>
-</tr>
-<tr class="deal-row" data-type="AMC,Generic" data-stage="2" data-region="International / Africa &amp; Israel" data-search="absa - qa and ai for rbb absa group ltd bridgitte fairon" data-acv="73389.6" data-close="2027-07-27" data-name="ABSA - QA and AI for RBB" data-owner="Bridgitte Fairon" data-type-sort="AMC, Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002F17nSIAR/view" target="_blank" rel="noopener">ABSA - QA and AI for RBB</a></td>
-<td class="acct-cell">ABSA GROUP LTD</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#6100FF1a;color:#6100FF;border:1px solid #6100FF55;">AMC</span><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jul 27, 2027</td>
-<td class="acv-cell">$73,390</td>
-<td>International / Africa &amp; Israel</td>
-<td>Bridgitte Fairon </td>
-</tr>
-<tr class="deal-row" data-type="" data-stage="1" data-region="Americas / Canada" data-search="the toronto-dominion bank us west |  amendment  | additional telephony system the toronto-dominion bank neil balthazaar" data-acv="252087.4" data-close="2027-02-19" data-name="THE TORONTO-DOMINION BANK US WEST |  Amendment  | Additional Telephony System" data-owner="Neil Balthazaar" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002Hllf1IAB/view" target="_blank" rel="noopener">THE TORONTO-DOMINION BANK US WEST |  Amendment  | Additional Telephony System</a></td>
-<td class="acct-cell">THE TORONTO-DOMINION BANK</td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 19, 2027</td>
-<td class="acv-cell">$252,087<div class="acv-sub">CAD 356,502</div></td>
-<td>Americas / Canada</td>
-<td>Neil Balthazaar </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="3" data-region="Americas / Commercial Central 2" data-search="xcel energy | cxone | quality management | 450 xcel energy inc. gannon harris" data-acv="388026.6" data-close="2027-05-28" data-name="Xcel Energy | CXone | Quality Management | 450" data-owner="Gannon Harris" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002JQwNlIAL/view" target="_blank" rel="noopener">Xcel Energy | CXone | Quality Management | 450</a></td>
-<td class="acct-cell">XCEL ENERGY INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>May 28, 2027</td>
-<td class="acv-cell">$388,027</td>
-<td>Americas / Commercial Central 2</td>
-<td>Gannon Harris </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="1" data-region="Americas / FSI 1" data-search="aon service corporation - north america |  amendment  | 30 addtl voice licenses/smartreach/nexidia aon plc alex scharwath" data-acv="184831.3" data-close="2027-08-24" data-name="AON SERVICE CORPORATION - NORTH AMERICA |  Amendment  | 30 addtl voice licenses/SmartReach/Nexidia" data-owner="Alex Scharwath" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002JsfLbIAJ/view" target="_blank" rel="noopener">AON SERVICE CORPORATION - NORTH AMERICA |  Amendment  | 30 addtl voice licenses/SmartReach/Nexidia</a></td>
-<td class="acct-cell">AON PLC</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Aug 24, 2027</td>
-<td class="acv-cell">$184,831</td>
-<td>Americas / FSI 1</td>
-<td>Alex Scharwath </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="2" data-region="Americas / SMB East" data-search="impulse dynamics | bridgepointe | cxone | skyward | core + ia+ qma + copilot | 50 impulse dynamics (usa) inc. ryan horne" data-acv="132772.2" data-close="2027-12-31" data-name="Impulse Dynamics | Bridgepointe | CXone | Skyward | Core + IA+ QMA + Copilot | 50" data-owner="Ryan Horne" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002KeuwbIAB/view" target="_blank" rel="noopener">Impulse Dynamics | Bridgepointe | CXone | Skyward | Core + IA+ QMA + Copilot | 50</a></td>
-<td class="acct-cell">Impulse Dynamics (USA) Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Dec 31, 2027</td>
-<td class="acv-cell">$132,772</td>
-<td>Americas / SMB East</td>
-<td>Ryan Horne </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="4" data-region="International / ANZ - 2" data-search="kennards hire | australia | generation-e | qm autoscore andrew k. investments pty ltd jarrah sladek" data-acv="79741.38" data-close="2027-03-30" data-name="Kennards Hire | Australia | Generation-e | QM Autoscore" data-owner="Jarrah Sladek" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002M5M75IAF/view" target="_blank" rel="noopener">Kennards Hire | Australia | Generation-e | QM Autoscore</a></td>
-<td class="acct-cell">ANDREW K. INVESTMENTS PTY LTD</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Mar 30, 2027</td>
-<td class="acv-cell">$79,741<div class="acv-sub">AUD 114,836</div></td>
-<td>International / ANZ - 2</td>
-<td>Jarrah Sladek </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="4" data-region="International / Africa &amp; Israel" data-search="bank discount ccaas for test 20 agents israel discount bank limited eytan chen" data-acv="52356.72" data-close="2026-10-20" data-name="BANK DISCOUNT CCaaS for TEST 20 agents" data-owner="Eytan Chen" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002NssEsIAJ/view" target="_blank" rel="noopener">BANK DISCOUNT CCaaS for TEST 20 agents</a></td>
-<td class="acct-cell">ISRAEL DISCOUNT BANK LIMITED</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Oct 20, 2026</td>
-<td class="acv-cell">$52,357</td>
-<td>International / Africa &amp; Israel</td>
-<td>Eytan Chen </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="4" data-region="International / Africa &amp; Israel" data-search="bank discount - ccaas dev for 10 agents israel discount bank limited eytan chen" data-acv="48095.16" data-close="2026-11-17" data-name="BANK DISCOUNT - CCaaS DEV for 10 agents" data-owner="Eytan Chen" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002NsxPrIAJ/view" target="_blank" rel="noopener">BANK DISCOUNT - CCaaS DEV for 10 agents</a></td>
-<td class="acct-cell">ISRAEL DISCOUNT BANK LIMITED</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Nov 17, 2026</td>
-<td class="acv-cell">$48,095</td>
-<td>International / Africa &amp; Israel</td>
-<td>Eytan Chen </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="1" data-region="Americas / Enterprise Central" data-search="favor delivery - pv to cxone qm migration - 150 users h. e. butt grocery company luke johnson" data-acv="66600" data-close="2027-06-25" data-name="Favor Delivery - PV to CXone QM Migration - 150 Users" data-owner="Luke Johnson" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002O3U9EIAV/view" target="_blank" rel="noopener">Favor Delivery - PV to CXone QM Migration - 150 Users</a></td>
-<td class="acct-cell">H. E. BUTT GROCERY COMPANY</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Jun 25, 2027</td>
-<td class="acv-cell">$66,600</td>
-<td>Americas / Enterprise Central</td>
-<td>Luke Johnson </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="2" data-region="Americas / Commercial Central 1" data-search="empire today llc | smartreach | 125k voice | 500k sms empire today, llc grayson sims" data-acv="210103.56" data-close="2027-01-31" data-name="EMPIRE TODAY LLC | SmartReach | 125k Voice | 500k SMS" data-owner="Grayson Sims" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002O3cMwIAJ/view" target="_blank" rel="noopener">EMPIRE TODAY LLC | SmartReach | 125k Voice | 500k SMS</a></td>
-<td class="acct-cell">EMPIRE TODAY, LLC</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jan 31, 2027</td>
-<td class="acv-cell">$210,104</td>
-<td>Americas / Commercial Central 1</td>
-<td>Grayson Sims </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="4" data-region="Americas / Enterprise Central" data-search="onemain financial - amendment 16 - iex/eem expansion to autos group - 310 users onemain financial luke johnson" data-acv="146496" data-close="2026-12-11" data-name="OneMain Financial - Amendment 16 - IEX/EEM Expansion to Autos Group - 310 Users" data-owner="Luke Johnson" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002Z2d50IAB/view" target="_blank" rel="noopener">OneMain Financial - Amendment 16 - IEX/EEM Expansion to Autos Group - 310 Users</a></td>
-<td class="acct-cell">OneMain Financial</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Dec 11, 2026</td>
-<td class="acv-cell">$146,496</td>
-<td>Americas / Enterprise Central</td>
-<td>Luke Johnson </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="5" data-region="Americas / Diversified BPO" data-search="strategic link - add cxone qm and ia infotel international limited ben varela" data-acv="75114.6" data-close="2026-10-30" data-name="Strategic Link - Add CXone QM and IA" data-owner="Ben Varela" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002araPNIAY/view" target="_blank" rel="noopener">Strategic Link - Add CXone QM and IA</a></td>
-<td class="acct-cell">Infotel International Limited</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-green"><span class="stage-num">5</span> · Proposal / Negotiation</span></td>
-<td>Oct 30, 2026</td>
-<td class="acv-cell">$75,115</td>
-<td>Americas / Diversified BPO</td>
-<td>Ben Varela </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="4" data-region="Americas / Commercial Central 3" data-search="spire |  amendment  | 2026-07-20 spire inc. jason cates" data-acv="119946.24" data-close="2026-12-18" data-name="SPIRE |  Amendment  | 2026-07-20" data-owner="Jason Cates" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002cjSsUIAU/view" target="_blank" rel="noopener">SPIRE |  Amendment  | 2026-07-20</a></td>
-<td class="acct-cell">Spire Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Dec 18, 2026</td>
-<td class="acv-cell">$119,946</td>
-<td>Americas / Commercial Central 3</td>
-<td>Jason Cates </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing,Generic" data-stage="3" data-region="International / UK&amp;I - 5" data-search="financial times | wfm, iaa + qma nikkei inc. caroline burns" data-acv="109225.11" data-close="2027-02-08" data-name="Financial Times | WFM, IAA + QMA" data-owner="Caroline Burns" data-type-sort="Ticketing, Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002eKmOeIAK/view" target="_blank" rel="noopener">Financial Times | WFM, IAA + QMA</a></td>
-<td class="acct-cell">NIKKEI INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Feb 8, 2027</td>
-<td class="acv-cell">$109,225<div class="acv-sub">GBP 81,952</div></td>
-<td>International / UK&amp;I - 5</td>
-<td>Caroline Burns </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="1" data-region="Americas / FSI 1" data-search="nelnet enterprise |  amendment  | fm - 850 nelnet, inc. casey jones" data-acv="117303" data-close="2027-02-26" data-name="NELNET ENTERPRISE |  Amendment  | FM - 850" data-owner="Casey Jones" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002h6WA0IAM/view" target="_blank" rel="noopener">NELNET ENTERPRISE |  Amendment  | FM - 850</a></td>
-<td class="acct-cell">NELNET, INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 26, 2027</td>
-<td class="acv-cell">$117,303</td>
-<td>Americas / FSI 1</td>
-<td>Casey Jones </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="1" data-region="Americas / FSI 1" data-search="nelnet enterprise |  amendment  | auto score 83k p/m nelnet, inc. casey jones" data-acv="119999.52" data-close="2027-02-12" data-name="NELNET ENTERPRISE |  Amendment  | Auto score 83k p/m" data-owner="Casey Jones" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002h7OTgIAM/view" target="_blank" rel="noopener">NELNET ENTERPRISE |  Amendment  | Auto score 83k p/m</a></td>
-<td class="acct-cell">NELNET, INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 12, 2027</td>
-<td class="acv-cell">$120,000</td>
-<td>Americas / FSI 1</td>
-<td>Casey Jones </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="4" data-region="Americas / Commercial West 3" data-search="spoton corporation |  amendment  | advanced qm + advanced ia spoton corporation larissa bakaldin" data-acv="131184" data-close="2027-02-19" data-name="SPOTON CORPORATION |  Amendment  | Advanced QM + Advanced IA" data-owner="Larissa Bakaldin" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002hmK13IAE/view" target="_blank" rel="noopener">SPOTON CORPORATION |  Amendment  | Advanced QM + Advanced IA</a></td>
-<td class="acct-cell">Spoton Corporation</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Feb 19, 2027</td>
-<td class="acv-cell">$131,184</td>
-<td>Americas / Commercial West 3</td>
-<td>Larissa Bakaldin </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="5" data-region="Japan" data-search="itochu techno-solutions demo bu |  amendment  | interaction hub, engagement hub, cognigy new sku itochu techno-solutions corporation tomoyo michishita" data-acv="0" data-close="2026-11-02" data-name="ITOCHU TECHNO-SOLUTIONS DEMO BU |  Amendment  | Interaction Hub, Engagement Hub, Cognigy New SKU" data-owner="Tomoyo Michishita" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006Ui00002hnWctIAE/view" target="_blank" rel="noopener">ITOCHU TECHNO-SOLUTIONS DEMO BU |  Amendment  | Interaction Hub, Engagement Hub, Cognigy New SKU</a></td>
-<td class="acct-cell">Itochu Techno-Solutions Corporation</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-green"><span class="stage-num">5</span> · Proposal / Negotiation</span></td>
-<td>Nov 2, 2026</td>
-<td class="acv-cell">$0<div class="acv-sub">JPY 0</div></td>
-<td>Japan</td>
-<td>Tomoyo Michishita </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="3" data-region="Americas / Enterprise Central" data-search="onemain financial - amendment - load and performance testing + cyara tools onemain financial luke johnson" data-acv="0" data-close="2026-11-20" data-name="OneMain Financial - Amendment - Load and Performance Testing + Cyara Tools" data-owner="Luke Johnson" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000OhjlAAC/view" target="_blank" rel="noopener">OneMain Financial - Amendment - Load and Performance Testing + Cyara Tools</a></td>
-<td class="acct-cell">OneMain Financial</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Nov 20, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / Enterprise Central</td>
-<td>Luke Johnson </td>
-</tr>
-<tr class="deal-row" data-type="" data-stage="4" data-region="Americas / Commercial West 2" data-search="kryterion | amendment | qma extension kryterion scott steinert" data-acv="6048" data-close="2027-01-14" data-name="KRYTERION | Amendment | QMA Extension" data-owner="Scott Steinert" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000ciMcAAI/view" target="_blank" rel="noopener">KRYTERION | Amendment | QMA Extension</a></td>
-<td class="acct-cell">Kryterion</td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Jan 14, 2027</td>
-<td class="acv-cell">$6,048</td>
-<td>Americas / Commercial West 2</td>
-<td>Scott Steinert </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="3" data-region="Americas / FSI 4" data-search="american family | cxone | cloud product | 500 american family mutual insurance company michael carlin" data-acv="208505.4" data-close="2027-01-30" data-name="American Family | CXone | Cloud Product | 500" data-owner="Michael Carlin" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000kcrtAAA/view" target="_blank" rel="noopener">American Family | CXone | Cloud Product | 500</a></td>
-<td class="acct-cell">AMERICAN FAMILY MUTUAL INSURANCE COMPANY</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Jan 30, 2027</td>
-<td class="acv-cell">$208,505</td>
-<td>Americas / FSI 4</td>
-<td>Michael Carlin </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="3" data-region="Americas / Diversified BPO" data-search="abound health | cxone, co-pilot, wfm, ia | 60 abound health, llc claire bradbury" data-acv="186511.56" data-close="2027-03-26" data-name="Abound Health | CXONE, Co-Pilot, WFM, IA | 60" data-owner="Claire Bradbury" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000000qO4fAAE/view" target="_blank" rel="noopener">Abound Health | CXONE, Co-Pilot, WFM, IA | 60</a></td>
-<td class="acct-cell">ABOUND HEALTH, LLC</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Mar 26, 2027</td>
-<td class="acv-cell">$186,512</td>
-<td>Americas / Diversified BPO</td>
-<td>Claire Bradbury </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="4" data-region="Americas / Commercial Central 3" data-search="tds telecom sms technician comms (cognigy) |  amendment  | 2026-09-02 telephone and data systems, inc. todd brown" data-acv="34341.36" data-close="2027-02-22" data-name="TDS TELECOM SMS Technician Comms (Cognigy) |  Amendment  | 2026-09-02" data-owner="Todd Brown" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000015uSQAAY/view" target="_blank" rel="noopener">TDS TELECOM SMS Technician Comms (Cognigy) |  Amendment  | 2026-09-02</a></td>
-<td class="acct-cell">TELEPHONE AND DATA SYSTEMS, INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-purple"><span class="stage-num">4</span> · Confirm Value &amp; Agreement</span></td>
-<td>Feb 22, 2027</td>
-<td class="acv-cell">$34,341</td>
-<td>Americas / Commercial Central 3</td>
-<td>Todd Brown </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="3" data-region="Americas / FSI 4" data-search="amerisourcebergen | playback portal cloud migration amerisourcebergen corporation ryan teague" data-acv="456694.8" data-close="2026-12-18" data-name="AmerisourceBergen | Playback Portal Cloud Migration" data-owner="Ryan Teague" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001LULtAAO/view" target="_blank" rel="noopener">AmerisourceBergen | Playback Portal Cloud Migration</a></td>
-<td class="acct-cell">AMERISOURCEBERGEN CORPORATION</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Dec 18, 2026</td>
-<td class="acv-cell">$456,695</td>
-<td>Americas / FSI 4</td>
-<td>Ryan Teague </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="3" data-region="Americas / Commercial West 3" data-search="tfli | smartreach | 30 bcb holdings (cheshire) limited jace webb" data-acv="138670.08" data-close="2027-01-31" data-name="TFLI | Smartreach | 30" data-owner="Jace Webb" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001TjsRAAS/view" target="_blank" rel="noopener">TFLI | Smartreach | 30</a></td>
-<td class="acct-cell">BCB HOLDINGS (CHESHIRE) LIMITED</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">3</span> · Aligning Benefits &amp; Value</span></td>
-<td>Jan 31, 2027</td>
-<td class="acv-cell">$138,670</td>
-<td>Americas / Commercial West 3</td>
-<td>Jace Webb </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="2" data-region="Americas / SMB West" data-search="servicetitan | cxone + cognigy | 150 | rfp servicetitan, inc. cody lauder" data-acv="491769.36" data-close="2027-01-31" data-name="ServiceTitan | CXone + Cognigy | 150 | RFP" data-owner="Cody Lauder" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001iUpqAAE/view" target="_blank" rel="noopener">ServiceTitan | CXone + Cognigy | 150 | RFP</a></td>
-<td class="acct-cell">Servicetitan, Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jan 31, 2027</td>
-<td class="acv-cell">$491,769</td>
-<td>Americas / SMB West</td>
-<td>Cody Lauder </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="1" data-region="Americas / FSI 3" data-search="njm insurance group |  amendment  | bcp project new jersey manufacturers insurance co mike elkind" data-acv="166933.2" data-close="2027-03-22" data-name="NJM INSURANCE GROUP |  Amendment  | BCP Project" data-owner="Mike Elkind" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001mGptAAE/view" target="_blank" rel="noopener">NJM INSURANCE GROUP |  Amendment  | BCP Project</a></td>
-<td class="acct-cell">New Jersey Manufacturers Insurance Co</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Mar 22, 2027</td>
-<td class="acv-cell">$166,933</td>
-<td>Americas / FSI 3</td>
-<td>Mike Elkind </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="2" data-region="International / France" data-search="pmu - ai-based qm - 300 cep du pmu stephan rouillon" data-acv="180919.49" data-close="2027-12-07" data-name="PMU - AI-based QM - 300" data-owner="Stephan Rouillon" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000001p2yTAAQ/view" target="_blank" rel="noopener">PMU - AI-based QM - 300</a></td>
-<td class="acct-cell">CEP DU PMU</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Dec 7, 2027</td>
-<td class="acv-cell">$180,919<div class="acv-sub">EUR 160,982</div></td>
-<td>International / France</td>
-<td>Stephan Rouillon </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing,SmartReach" data-stage="2" data-region="Americas / SMB Verticals" data-search="copilotiq | outbound engagement | 75 copilotiq, inc. jason goates" data-acv="177536.28" data-close="2026-11-27" data-name="CopilotIQ | Outbound Engagement | 75" data-owner="Jason Goates" data-type-sort="Ticketing, SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000020wAwAAI/view" target="_blank" rel="noopener">CopilotIQ | Outbound Engagement | 75</a></td>
-<td class="acct-cell">CopilotIQ, Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Nov 27, 2026</td>
-<td class="acv-cell">$177,536</td>
-<td>Americas / SMB Verticals</td>
-<td>Jason Goates </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing,Generic" data-stage="2" data-region="Americas / SMB Central" data-search="brennan &amp; clark | cxone | 20 brennan &amp; clark, ltd., l.l.c. tyler hansen" data-acv="23682.6" data-close="2026-11-16" data-name="Brennan &amp; Clark | CXone | 20" data-owner="Tyler Hansen" data-type-sort="Ticketing, Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000002fyIPAAY/view" target="_blank" rel="noopener">Brennan &amp; Clark | CXone | 20</a></td>
-<td class="acct-cell">Brennan &amp; Clark, Ltd., L.L.C.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Nov 16, 2026</td>
-<td class="acv-cell">$23,683</td>
-<td>Americas / SMB Central</td>
-<td>Tyler Hansen </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="2" data-region="Americas / FSI 3" data-search="njm insurance group |  amendment  | voc new jersey manufacturers insurance co mike elkind" data-acv="60843.96" data-close="2027-06-16" data-name="NJM INSURANCE GROUP |  Amendment  | VOC" data-owner="Mike Elkind" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000002k5RlAAI/view" target="_blank" rel="noopener">NJM INSURANCE GROUP |  Amendment  | VOC</a></td>
-<td class="acct-cell">New Jersey Manufacturers Insurance Co</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Jun 16, 2027</td>
-<td class="acv-cell">$60,844</td>
-<td>Americas / FSI 3</td>
-<td>Mike Elkind </td>
-</tr>
-<tr class="deal-row" data-type="" data-stage="1" data-region="Enterprise West" data-search="open network exchange |  amendment  | 2026-10-08 open network exchange inc cori walker" data-acv="0" data-close="2027-01-08" data-name="OPEN NETWORK EXCHANGE |  Amendment  | 2026-10-08" data-owner="Cori Walker" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000003i5rvAAA/view" target="_blank" rel="noopener">OPEN NETWORK EXCHANGE |  Amendment  | 2026-10-08</a></td>
-<td class="acct-cell">Open Network Exchange Inc</td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Jan 8, 2027</td>
-<td class="acv-cell">$0</td>
-<td>Enterprise West</td>
-<td>Cori Walker </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="2" data-region="Americas / Enterprise AI Acquisition" data-search="lenovo group ltd. |  amendment  | customer care poc i vrs - connectivity - additional skus lenovo group limited jim kelley" data-acv="0" data-close="2026-11-21" data-name="LENOVO GROUP LTD. |  Amendment  | Customer Care POC I VRS - Connectivity - Additional SKUs" data-owner="Jim Kelley" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000041eAnAAI/view" target="_blank" rel="noopener">LENOVO GROUP LTD. |  Amendment  | Customer Care POC I VRS - Connectivity - Additional SKUs</a></td>
-<td class="acct-cell">LENOVO GROUP LIMITED</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-yellow"><span class="stage-num">2</span> · Determining Problem / Impact</span></td>
-<td>Nov 21, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / Enterprise AI Acquisition</td>
-<td>Jim Kelley </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="1" data-region="Americas / SMB East" data-search="american dream auto protect inc. |  amendment  | 2026-10-13 american dream auto protect inc. ryan horne" data-acv="55749.48" data-close="2026-12-31" data-name="AMERICAN DREAM AUTO PROTECT INC. |  Amendment  | 2026-10-13" data-owner="Ryan Horne" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000042ObpAAE/view" target="_blank" rel="noopener">AMERICAN DREAM AUTO PROTECT INC. |  Amendment  | 2026-10-13</a></td>
-<td class="acct-cell">American Dream Auto Protect Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Dec 31, 2026</td>
-<td class="acv-cell">$55,749</td>
-<td>Americas / SMB East</td>
-<td>Ryan Horne </td>
-</tr>
-<tr class="deal-row" data-type="" data-stage="1" data-region="Americas / Enterprise West" data-search="public storage operating company |  amendment  | copilot public storage vanessa crook" data-acv="210000" data-close="2027-02-13" data-name="PUBLIC STORAGE OPERATING COMPANY |  Amendment  | Copilot" data-owner="Vanessa Crook" data-type-sort="—">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i90000044j13AAA/view" target="_blank" rel="noopener">PUBLIC STORAGE OPERATING COMPANY |  Amendment  | Copilot</a></td>
-<td class="acct-cell">PUBLIC STORAGE</td>
-<td><span class="dash-muted">—</span></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Feb 13, 2027</td>
-<td class="acv-cell">$210,000</td>
-<td>Americas / Enterprise West</td>
-<td>Vanessa Crook </td>
-</tr>
-<tr class="deal-row" data-type="Generic" data-stage="1" data-region="Americas / FSI 1" data-search="nelnet enterprise |  amendment  | cognigy upsell from autopilot nelnet, inc. casey jones" data-acv="200001.84" data-close="2026-12-31" data-name="NELNET ENTERPRISE |  Amendment  | Cognigy Upsell from Autopilot" data-owner="Casey Jones" data-type-sort="Generic">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000004IzVlAAK/view" target="_blank" rel="noopener">NELNET ENTERPRISE |  Amendment  | Cognigy Upsell from Autopilot</a></td>
-<td class="acct-cell">NELNET, INC.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#36EAD01a;color:#36EAD0;border:1px solid #36EAD055;">Generic</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Dec 31, 2026</td>
-<td class="acv-cell">$200,002</td>
-<td>Americas / FSI 1</td>
-<td>Casey Jones </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="1" data-region="Americas / Commercial Central 3" data-search="spire |  amendment  | ps hours | accenture spire inc. jason cates" data-acv="0" data-close="2026-10-23" data-name="SPIRE |  Amendment  | PS Hours | Accenture" data-owner="Jason Cates" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000004kQ3fAAE/view" target="_blank" rel="noopener">SPIRE |  Amendment  | PS Hours | Accenture</a></td>
-<td class="acct-cell">Spire Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Oct 23, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / Commercial Central 3</td>
-<td>Jason Cates </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="1" data-region="Americas / Commercial Central 3" data-search="spire |  amendment  | cognigy convert from autopilot | accenture spire inc. tara miller" data-acv="589306.32" data-close="2027-04-09" data-name="SPIRE |  Amendment  | Cognigy Convert from Autopilot | Accenture" data-owner="Tara Miller" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000004wc10AAA/view" target="_blank" rel="noopener">SPIRE |  Amendment  | Cognigy Convert from Autopilot | Accenture</a></td>
-<td class="acct-cell">Spire Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Apr 9, 2027</td>
-<td class="acv-cell">$589,306</td>
-<td>Americas / Commercial Central 3</td>
-<td>Tara Miller </td>
-</tr>
-<tr class="deal-row" data-type="Ticketing" data-stage="1" data-region="International / DACH" data-search="swiss re | amendment | cx1 | direct | integration of 3rd party snow tickets with existing cxone qm swiss re ag florian rech" data-acv="5664.19" data-close="2027-03-26" data-name="Swiss re | Amendment | CX1 | Direct | Integration of 3rd Party SNOW Tickets with existing CXone QM" data-owner="Florian Rech" data-type-sort="Ticketing">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000005RYCPAA4/view" target="_blank" rel="noopener">Swiss re | Amendment | CX1 | Direct | Integration of 3rd Party SNOW Tickets with existing CXone QM</a></td>
-<td class="acct-cell">SWISS RE AG</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#3694fc1a;color:#3694fc;border:1px solid #3694fc55;">Ticketing</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Mar 26, 2027</td>
-<td class="acv-cell">$5,664<div class="acv-sub">EUR 5,040</div></td>
-<td>International / DACH</td>
-<td>Florian Rech </td>
-</tr>
-<tr class="deal-row" data-type="SmartReach" data-stage="1" data-region="Americas / SMB Central" data-search="makes cents inc. |  amendment  | 2026-10-26 makes cents inc. teejay johnson" data-acv="0" data-close="2026-11-20" data-name="MAKES CENTS INC. |  Amendment  | 2026-10-26" data-owner="TeeJay Johnson" data-type-sort="SmartReach">
-<td class="opp-cell"><a href="https://niceincontact.lightning.force.com/lightning/r/Opportunity/006i9000005WullAAC/view" target="_blank" rel="noopener">MAKES CENTS INC. |  Amendment  | 2026-10-26</a></td>
-<td class="acct-cell">Makes Cents Inc.</td>
-<td><div class="pill-row"><span class="type-pill" style="background:#FF5B8A1a;color:#FF5B8A;border:1px solid #FF5B8A55;">SmartReach</span></div></td>
-<td><span class="stage-badge stage-blue"><span class="stage-num">1</span> · Identification / Qualification</span></td>
-<td>Nov 20, 2026</td>
-<td class="acv-cell">$0</td>
-<td>Americas / SMB Central</td>
-<td>TeeJay Johnson </td>
-</tr>
-        </tbody>
+        <tbody id="tableBody"></tbody>
       </table>
     </div>
 
     <div class="sidebar">
-      <div class="side-card">
+      <div class="sidebar-card">
         <h3>By Stage</h3>
-        <div class="side-row"><span>1 · Identification / Qualification</span><span>14 · $1,968,476</span></div><div class="side-row"><span>2 · Determining Problem / Impact</span><span>12 · $10,838,073</span></div><div class="side-row"><span>3 · Aligning Benefits &amp; Value</span><span>15 · $6,203,168</span></div><div class="side-row"><span>4 · Confirm Value &amp; Agreement</span><span>10 · $1,409,217</span></div><div class="side-row"><span>5 · Proposal / Negotiation</span><span>2 · $75,115</span></div>
+        <div id="byStage"></div>
       </div>
-      <div class="side-card">
+      <div class="sidebar-card">
         <h3>By Type</h3>
-        <div class="side-row"><span><span class="dot" style="background:#6100FF"></span>AMC</span><span>2 · $151,780</span></div><div class="side-row"><span><span class="dot" style="background:#3694fc"></span>Ticketing</span><span>13 · $5,679,755</span></div><div class="side-row"><span><span class="dot" style="background:#36EAD0"></span>Generic</span><span>17 · $3,028,094</span></div><div class="side-row"><span><span class="dot" style="background:#FF5B8A"></span>SmartReach</span><span>20 · $11,277,863</span></div><div class="side-row"><span><span class="dot" style="background:#888"></span>None</span><span>5 · $740,390</span></div>
+        <div id="byType"></div>
       </div>
-      <div class="side-card">
+      <div class="sidebar-card">
         <h3>By Region</h3>
-        <div class="side-row"><span>International / Africa &amp; Israel</span><span>4</span></div><div class="side-row"><span>Americas / FSI 1</span><span>4</span></div><div class="side-row"><span>Americas / Commercial Central 3</span><span>4</span></div><div class="side-row"><span>Americas / FSI 4</span><span>3</span></div><div class="side-row"><span>Americas / FSI 3</span><span>3</span></div><div class="side-row"><span>Americas / Enterprise Central</span><span>3</span></div><div class="side-row"><span>Americas / Canada</span><span>2</span></div><div class="side-row"><span>International / ANZ - 2</span><span>2</span></div><div class="side-row"><span>Americas / Commercial West 2</span><span>2</span></div><div class="side-row"><span>Americas / SMB East</span><span>2</span></div><div class="side-row"><span>Americas / Diversified BPO</span><span>2</span></div><div class="side-row"><span>Americas / Commercial West 3</span><span>2</span></div><div class="side-row"><span>Americas / SMB Central</span><span>2</span></div><div class="side-row"><span>International / UK&amp;I - 1</span><span>1</span></div><div class="side-row"><span>Americas / Federal</span><span>1</span></div><div class="side-row"><span>Americas / Commercial East 4</span><span>1</span></div><div class="side-row"><span>Americas / Healthcare 3</span><span>1</span></div><div class="side-row"><span>Playvox</span><span>1</span></div><div class="side-row"><span>International / SEA</span><span>1</span></div><div class="side-row"><span>Americas / Enterprise East</span><span>1</span></div><div class="side-row"><span>Americas / Commercial Central 2</span><span>1</span></div><div class="side-row"><span>Americas / Commercial Central 1</span><span>1</span></div><div class="side-row"><span>International / UK&amp;I - 5</span><span>1</span></div><div class="side-row"><span>Japan</span><span>1</span></div><div class="side-row"><span>Americas / SMB West</span><span>1</span></div><div class="side-row"><span>International / France</span><span>1</span></div><div class="side-row"><span>Americas / SMB Verticals</span><span>1</span></div><div class="side-row"><span>Enterprise West</span><span>1</span></div><div class="side-row"><span>Americas / Enterprise AI Acquisition</span><span>1</span></div><div class="side-row"><span>Americas / Enterprise West</span><span>1</span></div><div class="side-row"><span>International / DACH</span><span>1</span></div>
+        <div id="byRegion"></div>
       </div>
     </div>
   </div>
-
-  <footer>eHub Offline Dashboard &middot; NiCE CXone &middot; Auto-generated daily from Salesforce CPQ</footer>
 </div>
 
 <script>
+const STORED_HASH = "0bfb1dbb009f33393aaecf5d1200f0d385131857335eea846225358486b37621";
+const SF_BASE = "https://niceincontact.lightning.force.com/lightning/r/Opportunity/";
+const DEALS = [{"id":"006Ui00000qGNVlIAO","name":"SKY | CXone | RFP | 13000","account":"SKY UK Ltd  - UK - Enterprise","topParent":"Sky plc ","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-10-13","usdACV":5492422.07,"nativeACV":4120964.28,"currency":"GBP","region":"International / UK&I - 1","owner":"Jenna Shanks","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00001NBeD9IAL","name":"WSP | Cisco Takeout | CXone | 140 Agents","account":"WSP USA","topParent":"WSP Global Inc","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2028-11-20","usdACV":1836636.6,"nativeACV":1836636.6,"currency":"USD","region":"Americas / Federal","owner":"Jesse DiCocco","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00001ZNftpIAD","name":"Blackbaud | CXone QM | 350","account":"Blackbaud","topParent":"Blackbaud, Inc.","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-03-31","usdACV":184800,"nativeACV":184800,"currency":"USD","region":"Americas / Commercial East 4","owner":"Jack Whiteman","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui00001a57q1IAA","name":"Radiology Partners | CXone | 200","account":"Radiology Partners","topParent":"Radiology Partners Holdings, LLC","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-06-17","usdACV":999007.68,"nativeACV":999007.68,"currency":"USD","region":"Americas / Healthcare 3","owner":"Noa Nightingale","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00001h9rztIAA","name":"First Advantage | CXone | QM | 1000","account":"First Advantage","topParent":"First Advantage Corporation","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2026-10-14","usdACV":438000,"nativeACV":438000,"currency":"USD","region":"Playvox","owner":"Kyle Goodmanson","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui00001rvAejIAE","name":"NRG ENERGY INC | Amendment | Smartreach Outbound","account":"NRG ENERGY INC","topParent":"NRG ENERGY, INC.","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2027-06-11","usdACV":649999.92,"nativeACV":649999.92,"currency":"USD","region":"Americas / FSI 4","owner":"Amanda Lynn","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00001y1RxaIAE","name":"THE TORONTO-DOMINION BANK US WEST |  Amendment  | Recording Uplift","account":"THE TORONTO-DOMINION BANK US WEST","topParent":"THE TORONTO-DOMINION BANK","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2026-10-30","usdACV":272254.39,"nativeACV":385022.16,"currency":"CAD","region":"Americas / Canada","owner":"Neil Balthazaar","fedramp":false,"types":[],"typeStr":"\u2014"},{"id":"006Ui000021JjflIAC","name":"Bank Discount | Orange | RFP I CXone | CCaaS solution | 3,040 agents","account":"BANK DISCOUNT","topParent":"ISRAEL DISCOUNT BANK LIMITED","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-02-15","usdACV":3809834.04,"nativeACV":3809834.04,"currency":"USD","region":"International / Africa & Israel","owner":"Eytan Chen","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui000026ypXsIAI","name":"Asahi Holdings, Australia | GenE| EngagementHub | IAA and AQM | 62","account":"Asahi Holdings (Australia)","topParent":"ASAHI HOLDINGS (AUSTRALIA) PTY LTD","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-05-20","usdACV":78390.81,"nativeACV":112890.6,"currency":"AUD","region":"International / ANZ - 2","owner":"Jarrah Sladek","fedramp":false,"types":["AMC"],"typeStr":"AMC"},{"id":"006Ui000027E7shIAC","name":"NTUC FairPrice | SG | Deloitte | CXone | 100","account":"NTUC FairPrice","topParent":"NTUC ENTERPRISE CO-OPERATIVE LTD","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2027-07-30","usdACV":141007.8,"nativeACV":141007.8,"currency":"USD","region":"International / SEA","owner":"Gabriel Ng","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui000028QaOoIAK","name":"BOH - BluIP + Engagement Hub","account":"Bank of Hawaii Corporation","topParent":"BANK OF HAWAII CORPORATION","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-02-19","usdACV":514101.72,"nativeACV":514101.72,"currency":"USD","region":"Americas / Commercial West 2","owner":"Craig Griffin","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui000028pPMyIAM","name":"McGraw-Hill Education l CXone New BU Direct from VZ | 350 Concurrent","account":"McGraw-Hill Education","topParent":"McGraw Hill Education, Inc.","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2026-12-18","usdACV":253611,"nativeACV":253611,"currency":"USD","region":"Americas / Enterprise East","owner":"Sarah Hill","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui00002AZKI2IAP","name":"MARINER FINANCE  LLC |  Amendment  | New LOB | Ring Central | Smart Reach | 500","account":"MARINER FINANCE  LLC","topParent":"Mariner Finance, LLC","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-09-01","usdACV":323532.6,"nativeACV":323532.6,"currency":"USD","region":"Americas / FSI 3","owner":"Greg Koehler","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00002F17nSIAR","name":"ABSA - QA and AI for RBB","account":"Absa Bank Limited","topParent":"ABSA GROUP LTD","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-07-27","usdACV":73389.6,"nativeACV":73389.6,"currency":"USD","region":"International / Africa & Israel","owner":"Bridgitte Fairon","fedramp":false,"types":["AMC","Generic"],"typeStr":"AMC, Generic"},{"id":"006Ui00002Hllf1IAB","name":"THE TORONTO-DOMINION BANK US WEST |  Amendment  | Additional Telephony System","account":"THE TORONTO-DOMINION BANK US WEST","topParent":"THE TORONTO-DOMINION BANK","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-02-19","usdACV":252087.4,"nativeACV":356502,"currency":"CAD","region":"Americas / Canada","owner":"Neil Balthazaar","fedramp":false,"types":[],"typeStr":"\u2014"},{"id":"006Ui00002JQwNlIAL","name":"Xcel Energy | CXone | Quality Management | 450","account":"Xcel Energy Inc.","topParent":"XCEL ENERGY INC.","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-05-28","usdACV":388026.6,"nativeACV":388026.6,"currency":"USD","region":"Americas / Commercial Central 2","owner":"Gannon Harris","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui00002JsfLbIAJ","name":"AON SERVICE CORPORATION - NORTH AMERICA |  Amendment  | 30 addtl voice licenses/SmartReach/Nexidia","account":"AON SERVICE CORPORATION - NORTH AMERICA","topParent":"AON PLC","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-08-24","usdACV":184831.3,"nativeACV":184831.3,"currency":"USD","region":"Americas / FSI 1","owner":"Alex Scharwath","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00002KeuwbIAB","name":"Impulse Dynamics | Bridgepointe | CXone | Skyward | Core + IA+ QMA + Copilot | 50","account":"Impulse Dynamics","topParent":"Impulse Dynamics (USA) Inc.","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-12-31","usdACV":132772.2,"nativeACV":132772.2,"currency":"USD","region":"Americas / SMB East","owner":"Ryan Horne","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00002M5M75IAF","name":"Kennards Hire | Australia | Generation-e | QM Autoscore","account":"Kennards Hire","topParent":"ANDREW K. INVESTMENTS PTY LTD","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2027-03-30","usdACV":79741.38,"nativeACV":114835.56,"currency":"AUD","region":"International / ANZ - 2","owner":"Jarrah Sladek","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui00002NssEsIAJ","name":"BANK DISCOUNT CCaaS for TEST 20 agents","account":"BANK DISCOUNT","topParent":"ISRAEL DISCOUNT BANK LIMITED","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2026-10-20","usdACV":52356.72,"nativeACV":52356.72,"currency":"USD","region":"International / Africa & Israel","owner":"Eytan Chen","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui00002NsxPrIAJ","name":"BANK DISCOUNT - CCaaS DEV for 10 agents","account":"BANK DISCOUNT","topParent":"ISRAEL DISCOUNT BANK LIMITED","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2026-11-17","usdACV":48095.16,"nativeACV":48095.16,"currency":"USD","region":"International / Africa & Israel","owner":"Eytan Chen","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui00002O3U9EIAV","name":"Favor Delivery - PV to CXone QM Migration - 150 Users","account":"Favor Delivery","topParent":"H. E. BUTT GROCERY COMPANY","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-06-25","usdACV":66600,"nativeACV":66600,"currency":"USD","region":"Americas / Enterprise Central","owner":"Luke Johnson","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui00002O3cMwIAJ","name":"EMPIRE TODAY LLC | SmartReach | 125k Voice | 500k SMS","account":"EMPIRE TODAY LLC","topParent":"EMPIRE TODAY, LLC","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-01-31","usdACV":210103.56,"nativeACV":210103.56,"currency":"USD","region":"Americas / Commercial Central 1","owner":"Grayson Sims","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00002Z2d50IAB","name":"OneMain Financial - Amendment 16 - IEX/EEM Expansion to Autos Group - 310 Users","account":"ONEMAIN FINANCIAL - PRIMARY ENTERPRISE ACCOUNT","topParent":"OneMain Financial","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2026-12-11","usdACV":146496,"nativeACV":146496,"currency":"USD","region":"Americas / Enterprise Central","owner":"Luke Johnson","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00002araPNIAY","name":"Strategic Link - Add CXone QM and IA","account":"Infotel International","topParent":"Infotel International Limited","stageNum":"5","stageLabel":"Proposal / Negotiation","stageFull":"5 - Proposal / Negotiation","closeDate":"2026-10-30","usdACV":75114.6,"nativeACV":75114.6,"currency":"USD","region":"Americas / Diversified BPO","owner":"Ben Varela","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui00002cjSsUIAU","name":"SPIRE |  Amendment  | 2026-07-20","account":"SPIRE","topParent":"Spire Inc.","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2026-12-18","usdACV":119946.24,"nativeACV":119946.24,"currency":"USD","region":"Americas / Commercial Central 3","owner":"Jason Cates","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006Ui00002eKmOeIAK","name":"Financial Times | WFM, IAA + QMA","account":"Financial Times","topParent":"NIKKEI INC.","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-02-08","usdACV":109225.11,"nativeACV":81951.6,"currency":"GBP","region":"International / UK&I - 5","owner":"Caroline Burns","fedramp":false,"types":["Ticketing","Generic"],"typeStr":"Ticketing, Generic"},{"id":"006Ui00002h6WA0IAM","name":"NELNET ENTERPRISE |  Amendment  | FM - 850","account":"NELNET ENTERPRISE","topParent":"NELNET, INC.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-02-26","usdACV":117303,"nativeACV":117303,"currency":"USD","region":"Americas / FSI 1","owner":"Casey Jones","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui00002h7OTgIAM","name":"NELNET ENTERPRISE |  Amendment  | Auto score 83k p/m","account":"NELNET ENTERPRISE","topParent":"NELNET, INC.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-02-12","usdACV":119999.52,"nativeACV":119999.52,"currency":"USD","region":"Americas / FSI 1","owner":"Casey Jones","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006Ui00002hmK13IAE","name":"SPOTON CORPORATION |  Amendment  | Advanced QM + Advanced IA","account":"SPOTON CORPORATION","topParent":"Spoton Corporation","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2027-02-19","usdACV":131184,"nativeACV":131184,"currency":"USD","region":"Americas / Commercial West 3","owner":"Larissa Bakaldin","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006Ui00002hnWctIAE","name":"ITOCHU TECHNO-SOLUTIONS DEMO BU |  Amendment  | Interaction Hub, Engagement Hub, Cognigy New SKU","account":"ITOCHU TECHNO-SOLUTIONS DEMO BU","topParent":"Itochu Techno-Solutions Corporation","stageNum":"5","stageLabel":"Proposal / Negotiation","stageFull":"5 - Proposal / Negotiation","closeDate":"2026-11-02","usdACV":0,"nativeACV":0,"currency":"JPY","region":"Japan","owner":"Tomoyo Michishita","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000000OhjlAAC","name":"OneMain Financial - Amendment - Load and Performance Testing + Cyara Tools","account":"ONEMAIN FINANCIAL - PRIMARY ENTERPRISE ACCOUNT","topParent":"OneMain Financial","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2026-11-20","usdACV":0,"nativeACV":0,"currency":"USD","region":"Americas / Enterprise Central","owner":"Luke Johnson","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i9000000ciMcAAI","name":"KRYTERION | Amendment | QMA Extension","account":"KRYTERION","topParent":"Kryterion","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2027-01-14","usdACV":6048,"nativeACV":6048,"currency":"USD","region":"Americas / Commercial West 2","owner":"Scott Steinert","fedramp":false,"types":[],"typeStr":"\u2014"},{"id":"006i9000000kcrtAAA","name":"American Family | CXone | Cloud Product | 500","account":"AMERICAN FAMILY INSURANCE","topParent":"AMERICAN FAMILY MUTUAL INSURANCE COMPANY","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-01-30","usdACV":208505.4,"nativeACV":208505.4,"currency":"USD","region":"Americas / FSI 4","owner":"Michael Carlin","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000000qO4fAAE","name":"Abound Health | CXONE, Co-Pilot, WFM, IA | 60","account":"Abound Health","topParent":"ABOUND HEALTH, LLC","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-03-26","usdACV":186511.56,"nativeACV":186511.56,"currency":"USD","region":"Americas / Diversified BPO","owner":"Claire Bradbury","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i90000015uSQAAY","name":"TDS TELECOM SMS Technician Comms (Cognigy) |  Amendment  | 2026-09-02","account":"TDS TELECOM","topParent":"TELEPHONE AND DATA SYSTEMS, INC.","stageNum":"4","stageLabel":"Confirm Value & Agreement","stageFull":"4 - Confirm Value & Agreement","closeDate":"2027-02-22","usdACV":34341.36,"nativeACV":34341.36,"currency":"USD","region":"Americas / Commercial Central 3","owner":"Todd Brown","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i9000001LULtAAO","name":"AmerisourceBergen | Playback Portal Cloud Migration","account":"AMERISOURCEBERGEN CORPORATION","topParent":"AMERISOURCEBERGEN CORPORATION","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2026-12-18","usdACV":456694.8,"nativeACV":456694.8,"currency":"USD","region":"Americas / FSI 4","owner":"Ryan Teague","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000001TjsRAAS","name":"TFLI | Smartreach | 30","account":"TFLI","topParent":"BCB HOLDINGS (CHESHIRE) LIMITED","stageNum":"3","stageLabel":"Aligning Benefits & Value","stageFull":"3 - Aligning Benefits & Value","closeDate":"2027-01-31","usdACV":138670.08,"nativeACV":138670.08,"currency":"USD","region":"Americas / Commercial West 3","owner":"Jace Webb","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i9000001iUpqAAE","name":"ServiceTitan | CXone + Cognigy | 150 | RFP","account":"ServiceTitan, Inc.","topParent":"Servicetitan, Inc.","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-01-31","usdACV":491769.36,"nativeACV":491769.36,"currency":"USD","region":"Americas / SMB West","owner":"Cody Lauder","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006i9000001mGptAAE","name":"NJM INSURANCE GROUP |  Amendment  | BCP Project","account":"NJM INSURANCE GROUP","topParent":"New Jersey Manufacturers Insurance Co","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-03-22","usdACV":166933.2,"nativeACV":166933.2,"currency":"USD","region":"Americas / FSI 3","owner":"Mike Elkind","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000001p2yTAAQ","name":"PMU - AI-based QM - 300","account":"PMU - France - Enterprise","topParent":"CEP DU PMU","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-12-07","usdACV":180919.49,"nativeACV":160982.16,"currency":"EUR","region":"International / France","owner":"Stephan Rouillon","fedramp":false,"types":[],"typeStr":"\u2014"},{"id":"006i90000020wAwAAI","name":"CopilotIQ | Outbound Engagement | 75","account":"CopilotIQ","topParent":"CopilotIQ, Inc.","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2026-11-27","usdACV":177536.28,"nativeACV":177536.28,"currency":"USD","region":"Americas / SMB Verticals","owner":"Jason Goates","fedramp":false,"types":["Ticketing","SmartReach"],"typeStr":"Ticketing, SmartReach"},{"id":"006i9000002fyIPAAY","name":"Brennan & Clark | CXone | 20","account":"Brennan & Clark","topParent":"Brennan & Clark, Ltd., L.L.C.","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2026-11-16","usdACV":23682.6,"nativeACV":23682.6,"currency":"USD","region":"Americas / SMB Central","owner":"Tyler Hansen","fedramp":false,"types":["Ticketing","Generic"],"typeStr":"Ticketing, Generic"},{"id":"006i9000002k5RlAAI","name":"NJM INSURANCE GROUP |  Amendment  | VOC","account":"NJM INSURANCE GROUP","topParent":"New Jersey Manufacturers Insurance Co","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-06-16","usdACV":60843.96,"nativeACV":60843.96,"currency":"USD","region":"Americas / FSI 3","owner":"Mike Elkind","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000003Tz9dAAC","name":"Jetstar - Interaction Analytics - Datacom","account":"JETSTAR AIRWAYS","topParent":"QANTAS AIRWAYS LIMITED","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2027-02-28","usdACV":290832.97,"nativeACV":418828.56,"currency":"AUD","region":"International / ANZ - 1","owner":"Emma Callum","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000003i5rvAAA","name":"OPEN NETWORK EXCHANGE |  Amendment  | 2026-10-08","account":"OPEN NETWORK EXCHANGE","topParent":"Open Network Exchange Inc","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-01-08","usdACV":0,"nativeACV":0,"currency":"USD","region":"Enterprise West","owner":"Cori Walker","fedramp":false,"types":[],"typeStr":"\u2014"},{"id":"006i90000041eAnAAI","name":"LENOVO GROUP LTD. |  Amendment  | Customer Care POC I VRS - Connectivity - Additional SKUs","account":"LENOVO GROUP LTD.","topParent":"LENOVO GROUP LIMITED","stageNum":"2","stageLabel":"Determining Problem / Impact","stageFull":"2 - Determining Problem / Impact","closeDate":"2026-11-21","usdACV":0,"nativeACV":0,"currency":"USD","region":"Americas / Enterprise AI Acquisition","owner":"Jim Kelley","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i90000042ObpAAE","name":"AMERICAN DREAM AUTO PROTECT INC. |  Amendment  | 2026-10-13","account":"AMERICAN DREAM AUTO PROTECT INC.","topParent":"American Dream Auto Protect Inc.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2026-12-31","usdACV":80799.48,"nativeACV":80799.48,"currency":"USD","region":"Americas / SMB East","owner":"Ryan Horne","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i90000044j13AAA","name":"PUBLIC STORAGE OPERATING COMPANY |  Amendment  | Copilot","account":"PUBLIC STORAGE OPERATING COMPANY","topParent":"PUBLIC STORAGE","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-02-13","usdACV":210000,"nativeACV":210000,"currency":"USD","region":"Americas / Enterprise West","owner":"Vanessa Crook","fedramp":false,"types":[],"typeStr":"\u2014"},{"id":"006i9000004IzVlAAK","name":"NELNET ENTERPRISE |  Amendment  | Cognigy Upsell from Autopilot","account":"NELNET ENTERPRISE","topParent":"NELNET, INC.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2026-12-31","usdACV":200001.84,"nativeACV":200001.84,"currency":"USD","region":"Americas / FSI 1","owner":"Casey Jones","fedramp":false,"types":["Generic"],"typeStr":"Generic"},{"id":"006i9000004kQ3fAAE","name":"SPIRE |  Amendment  | PS Hours | Accenture","account":"SPIRE","topParent":"Spire Inc.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2026-10-23","usdACV":0,"nativeACV":0,"currency":"USD","region":"Americas / Commercial Central 3","owner":"Jason Cates","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i9000004wc10AAA","name":"SPIRE |  Amendment  | Cognigy Convert from Autopilot | Accenture","account":"SPIRE","topParent":"Spire Inc.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-04-09","usdACV":589306.32,"nativeACV":589306.32,"currency":"USD","region":"Americas / Commercial Central 3","owner":"Tara Miller","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"},{"id":"006i9000005RYCPAA4","name":"Swiss re | Amendment | CX1 | Direct | Integration of 3rd Party SNOW Tickets with existing CXone QM","account":"SWISS RE MANAGEMENT AG","topParent":"SWISS RE AG","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2027-03-26","usdACV":5664.19,"nativeACV":5040,"currency":"EUR","region":"International / DACH","owner":"Florian Rech","fedramp":false,"types":["Ticketing"],"typeStr":"Ticketing"},{"id":"006i9000005WullAAC","name":"MAKES CENTS INC. |  Amendment  | 2026-10-26","account":"MAKES CENTS INC.","topParent":"Makes Cents Inc.","stageNum":"1","stageLabel":"Identification / Qualification","stageFull":"1 - Identification / Qualification","closeDate":"2026-11-20","usdACV":0,"nativeACV":0,"currency":"USD","region":"Americas / SMB Central","owner":"TeeJay Johnson","fedramp":false,"types":["SmartReach"],"typeStr":"SmartReach"}];
+const TYPE_ORDER = ["AMC","Ticketing","Generic","SmartReach"];
+const STAGE_ORDER = ["0","1","2","3","4","5"];
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
 async function checkPw() {
   const val = document.getElementById('pwInput').value;
-  const enc = new TextEncoder().encode(val);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
-  if (hex === "0bfb1dbb009f33393aaecf5d1200f0d385131857335eea846225358486b37621") {
-    try { sessionStorage.setItem('ehub_offline_auth', '1'); } catch(e) {}
+  const hash = await sha256(val);
+  if (hash === STORED_HASH) {
+    try { sessionStorage.setItem('ehubOfflineAuth','1'); } catch(e) {}
     document.getElementById('gate').style.display = 'none';
     document.getElementById('app').style.display = 'block';
   } else {
-    document.getElementById('pwErr').textContent = 'Incorrect password';
+    document.getElementById('pwError').style.display = 'block';
   }
 }
-document.getElementById('pwInput').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') checkPw();
-});
-(function initAuth() {
-  try {
-    if (sessionStorage.getItem('ehub_offline_auth') === '1') {
-      document.getElementById('gate').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-    }
-  } catch(e) {}
-})();
 
-// Filtering + sorting
-const groupedBody = document.getElementById('groupedBody');
-const flatBody = document.getElementById('flatBody');
-const searchBox = document.getElementById('searchBox');
-const typeFilter = document.getElementById('typeFilter');
-const stageFilter = document.getElementById('stageFilter');
-const regionFilter = document.getElementById('regionFilter');
-const countLabel = document.getElementById('countLabel');
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+}
 
-let sortState = { key: null, dir: 0 }; // dir: 0 none,1 asc,2 desc
+function fmtUSD(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
 
-function applyFilters() {
-  const q = searchBox.value.trim().toLowerCase();
-  const ty = typeFilter.value;
-  const st = stageFilter.value;
-  const rg = regionFilter.value;
+function stageColorClass(num) {
+  if (num === '0' || num === '1') return 's-blue';
+  if (num === '2' || num === '3') return 's-yellow';
+  if (num === '4') return 's-purple';
+  if (num === '5') return 's-green';
+  return 's-blue';
+}
 
-  const activeBody = sortState.dir === 0 ? groupedBody : flatBody;
-  const rows = activeBody.querySelectorAll('tr.deal-row');
-  let visibleCount = 0;
-  const visibleAccounts = new Set();
+function typePills(d) {
+  if (!d.types || d.types.length === 0) return '<span class="no-type">&mdash;</span>';
+  return d.types.map(t => '<span class="pill ' + t + '">' + t + '</span>').join('');
+}
 
-  rows.forEach(row => {
-    const types = (row.dataset.type || "").split(",").filter(Boolean);
-    const matchesType = !ty || types.includes(ty);
-    const matchesStage = !st || row.dataset.stage === st;
-    const matchesRegion = !rg || row.dataset.region === rg;
-    const matchesSearch = !q || row.dataset.search.includes(q);
-    const visible = matchesType && matchesStage && matchesRegion && matchesSearch;
-    row.style.display = visible ? '' : 'none';
-    if (visible) {
-      visibleCount++;
-      if (row.dataset.parent) visibleAccounts.add(row.dataset.parent);
-      else visibleAccounts.add(row.dataset.search);
+function stageBadge(d) {
+  const cls = stageColorClass(d.stageNum);
+  const numPart = d.stageNum !== null ? d.stageNum + ' &middot; ' : '';
+  return '<span class="stage-badge ' + cls + '">' + numPart + d.stageLabel + '</span>';
+}
+
+function acvCell(d) {
+  let html = fmtUSD(d.usdACV);
+  if (d.currency !== 'USD') {
+    html += '<span class="acv-native">' + d.currency + ' ' + Math.round(d.nativeACV).toLocaleString('en-US') + '</span>';
+  }
+  return html;
+}
+
+let sortState = { col: null, dir: null };
+let collapsedAccounts = new Set();
+
+function populateFilterOptions() {
+  const typeSel = document.getElementById('typeFilter');
+  TYPE_ORDER.forEach(t => {
+    const present = DEALS.some(d => d.types.includes(t));
+    if (present) {
+      const opt = document.createElement('option');
+      opt.value = t; opt.textContent = t;
+      typeSel.appendChild(opt);
     }
   });
 
-  if (sortState.dir === 0) {
-    // grouped mode: hide account headers with no visible deals, respect collapsed state
-    const headers = groupedBody.querySelectorAll('tr.account-header');
-    headers.forEach(h => {
-      const acct = h.dataset.acct;
-      const anyVisible = groupedBody.querySelectorAll(`tr.deal-row[data-parent="${acct}"]`);
-      let hasVisible = false;
-      anyVisible.forEach(r => { if (r.style.display !== 'none') hasVisible = true; });
-      h.style.display = hasVisible ? '' : 'none';
-      // re-apply collapsed state
-      if (h.classList.contains('collapsed')) {
-        anyVisible.forEach(r => r.style.display = 'none');
+  const stageSel = document.getElementById('stageFilter');
+  const stagesPresent = {};
+  DEALS.forEach(d => { stagesPresent[d.stageNum || 'x'] = d.stageLabel; });
+  STAGE_ORDER.forEach(num => {
+    if (stagesPresent[num]) {
+      const opt = document.createElement('option');
+      opt.value = num;
+      opt.textContent = num + ' · ' + stagesPresent[num];
+      stageSel.appendChild(opt);
+    }
+  });
+
+  const regionSel = document.getElementById('regionFilter');
+  const regions = Array.from(new Set(DEALS.map(d => d.region))).sort();
+  regions.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r; opt.textContent = r;
+    regionSel.appendChild(opt);
+  });
+}
+
+const COLUMNS = [
+  { key: 'name', label: 'Opportunity' },
+  { key: 'account', label: 'Account' },
+  { key: 'typeStr', label: 'Type' },
+  { key: 'stageSort', label: 'Stage' },
+  { key: 'closeDate', label: 'Close Date' },
+  { key: 'usdACV', label: 'ACV' },
+  { key: 'region', label: 'Region / Territory' },
+  { key: 'owner', label: 'Owner' },
+];
+
+function renderHeader() {
+  const row = document.getElementById('headerRow');
+  row.innerHTML = '';
+  COLUMNS.forEach(col => {
+    const th = document.createElement('th');
+    let arrow = '';
+    if (sortState.col === col.key) arrow = '<span class="arrow">' + (sortState.dir === 'asc' ? '▲' : '▼') + '</span>';
+    th.innerHTML = col.label + arrow;
+    th.addEventListener('click', () => onSort(col.key));
+    row.appendChild(th);
+  });
+}
+
+function onSort(key) {
+  if (sortState.col !== key) {
+    sortState = { col: key, dir: 'asc' };
+  } else if (sortState.dir === 'asc') {
+    sortState = { col: key, dir: 'desc' };
+  } else {
+    sortState = { col: null, dir: null };
+  }
+  render();
+}
+
+function matchesFilters(d) {
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const typeF = document.getElementById('typeFilter').value;
+  const stageF = document.getElementById('stageFilter').value;
+  const regionF = document.getElementById('regionFilter').value;
+
+  if (q) {
+    const hay = (d.name + ' ' + d.account + ' ' + d.owner).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  if (typeF && !d.types.includes(typeF)) return false;
+  if (stageF && d.stageNum !== stageF) return false;
+  if (regionF && d.region !== regionF) return false;
+  return true;
+}
+
+function sortDeals(list, col, dir) {
+  const mult = dir === 'asc' ? 1 : -1;
+  return list.slice().sort((a, b) => {
+    let av, bv;
+    if (col === 'stageSort') { av = a.stageNum || '9'; bv = b.stageNum || '9'; }
+    else { av = a[col]; bv = b[col]; }
+    if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * mult;
+    av = (av === null || av === undefined) ? '' : String(av).toLowerCase();
+    bv = (bv === null || bv === undefined) ? '' : String(bv).toLowerCase();
+    if (av < bv) return -1 * mult;
+    if (av > bv) return 1 * mult;
+    return 0;
+  });
+}
+
+function renderDealRow(d, showAccount) {
+  const tr = document.createElement('tr');
+  tr.className = 'deal-row';
+  tr.innerHTML =
+    '<td class="indent"><a class="opp-link" href="' + SF_BASE + d.id + '/view" target="_blank" rel="noopener">' + d.name + '</a></td>' +
+    '<td>' + (showAccount ? d.account : '') + '</td>' +
+    '<td>' + typePills(d) + '</td>' +
+    '<td>' + stageBadge(d) + '</td>' +
+    '<td>' + fmtDate(d.closeDate) + '</td>' +
+    '<td>' + acvCell(d) + '</td>' +
+    '<td>' + d.region + '</td>' +
+    '<td>' + d.owner + (d.fedramp ? '<span class="fedramp-badge">FedRAMP</span>' : '') + '</td>';
+  return tr;
+}
+
+function render() {
+  const filtered = DEALS.filter(matchesFilters);
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  if (sortState.col) {
+    const sorted = sortDeals(filtered, sortState.col, sortState.dir);
+    sorted.forEach(d => tbody.appendChild(renderDealRow(d, true)));
+  } else {
+    const byAccount = {};
+    filtered.forEach(d => {
+      if (!byAccount[d.account]) byAccount[d.account] = [];
+      byAccount[d.account].push(d);
+    });
+    const accounts = Object.keys(byAccount).map(name => {
+      const list = byAccount[name];
+      const total = list.reduce((s, d) => s + d.usdACV, 0);
+      return { name, list, total };
+    });
+    accounts.sort((a, b) => b.total - a.total);
+
+    accounts.forEach(acct => {
+      const headerTr = document.createElement('tr');
+      headerTr.className = 'account-header' + (collapsedAccounts.has(acct.name) ? ' collapsed' : '');
+      headerTr.innerHTML =
+        '<td colspan="5"><span class="acct-name"><span class="caret">▼</span>' + acct.name +
+        ' <span class="deal-count">(' + acct.list.length + ' deal' + (acct.list.length === 1 ? '' : 's') + ')</span></span></td>' +
+        '<td class="acct-total">' + fmtUSD(acct.total) + '</td>' +
+        '<td colspan="2"></td>';
+      headerTr.addEventListener('click', () => {
+        if (collapsedAccounts.has(acct.name)) collapsedAccounts.delete(acct.name);
+        else collapsedAccounts.add(acct.name);
+        render();
+      });
+      tbody.appendChild(headerTr);
+
+      if (!collapsedAccounts.has(acct.name)) {
+        const sortedDeals = acct.list.slice().sort((a, b) => a.closeDate.localeCompare(b.closeDate));
+        sortedDeals.forEach(d => tbody.appendChild(renderDealRow(d, false)));
       }
     });
   }
 
-  const accountCountForLabel = sortState.dir === 0
-    ? [...groupedBody.querySelectorAll('tr.account-header')].filter(h => h.style.display !== 'none').length
-    : new Set([...flatBody.querySelectorAll('tr.deal-row')].filter(r => r.style.display !== 'none').map(r => r.dataset.search.split(' ')[0])).size;
-
-  countLabel.textContent = `${visibleCount} deals · ${accountCountForLabel} accounts`;
+  const accountCount = new Set(filtered.map(d => d.account)).size;
+  document.getElementById('countLabel').textContent = filtered.length + ' deals · ' + accountCount + ' accounts';
+  renderHeader();
 }
 
-function toggleAccount(acctId) {
-  const header = groupedBody.querySelector(`tr.account-header[data-acct="${acctId}"]`);
-  const rows = groupedBody.querySelectorAll(`tr.deal-row[data-parent="${acctId}"]`);
-  const collapsing = !header.classList.contains('collapsed');
-  header.classList.toggle('collapsed');
-  rows.forEach(r => { r.style.display = collapsing ? 'none' : ''; });
+function renderStats() {
+  document.getElementById('statDeals').textContent = DEALS.length;
+  document.getElementById('statAccounts').textContent = new Set(DEALS.map(d => d.account)).size;
+  document.getElementById('statACV').textContent = fmtUSD(DEALS.reduce((s, d) => s + d.usdACV, 0));
+  document.getElementById('statFedramp').textContent = DEALS.filter(d => d.fedramp).length;
 }
 
-searchBox.addEventListener('input', applyFilters);
-typeFilter.addEventListener('change', applyFilters);
-stageFilter.addEventListener('change', applyFilters);
-regionFilter.addEventListener('change', applyFilters);
-
-// Sorting
-const headers = document.querySelectorAll('#dealTable thead th');
-headers.forEach(th => {
-  th.addEventListener('click', () => {
-    const key = th.dataset.key;
-    if (sortState.key !== key) {
-      sortState.key = key; sortState.dir = 1;
-    } else {
-      sortState.dir = (sortState.dir + 1) % 3;
-      if (sortState.dir === 0) sortState.key = null;
-    }
-    headers.forEach(h => h.querySelector('.sort-arrow')?.remove());
-    if (sortState.dir !== 0) {
-      const arrow = document.createElement('span');
-      arrow.className = 'sort-arrow';
-      arrow.textContent = sortState.dir === 1 ? '▲' : '▼';
-      th.appendChild(arrow);
-    }
-    renderSort();
+function renderSidebar() {
+  const stageMap = {};
+  DEALS.forEach(d => {
+    const key = (d.stageNum || '') + ' · ' + d.stageLabel;
+    if (!stageMap[key]) stageMap[key] = { count: 0, acv: 0, num: d.stageNum };
+    stageMap[key].count++; stageMap[key].acv += d.usdACV;
   });
-});
+  const stageKeys = Object.keys(stageMap).sort((a,b) => (stageMap[a].num||'9').localeCompare(stageMap[b].num||'9'));
+  document.getElementById('byStage').innerHTML = stageKeys.map(k =>
+    '<div class="sidebar-row"><span class="srow-label">' + k + '</span><span class="srow-val">' + stageMap[k].count + ' &middot; ' + fmtUSD(stageMap[k].acv) + '</span></div>'
+  ).join('');
 
-function renderSort() {
-  if (sortState.dir === 0) {
-    groupedBody.style.display = '';
-    flatBody.style.display = 'none';
-    applyFilters();
-    return;
+  const typeMap = {};
+  TYPE_ORDER.forEach(t => typeMap[t] = { count: 0, acv: 0 });
+  typeMap['None'] = { count: 0, acv: 0 };
+  DEALS.forEach(d => {
+    if (d.types && d.types.length) {
+      d.types.forEach(t => { typeMap[t].count++; typeMap[t].acv += d.usdACV; });
+    } else {
+      typeMap['None'].count++; typeMap['None'].acv += d.usdACV;
+    }
+  });
+  const typeKeys = [...TYPE_ORDER, 'None'].filter(k => typeMap[k].count > 0);
+  document.getElementById('byType').innerHTML = typeKeys.map(k =>
+    '<div class="sidebar-row"><span class="srow-label">' + k + '</span><span class="srow-val">' + typeMap[k].count + ' &middot; ' + fmtUSD(typeMap[k].acv) + '</span></div>'
+  ).join('');
+
+  const regionMap = {};
+  DEALS.forEach(d => { regionMap[d.region] = (regionMap[d.region] || 0) + 1; });
+  const regionKeys = Object.keys(regionMap).sort((a,b) => regionMap[b]-regionMap[a]);
+  document.getElementById('byRegion').innerHTML = regionKeys.map(k =>
+    '<div class="sidebar-row"><span class="srow-label">' + k + '</span><span class="srow-val">' + regionMap[k] + '</span></div>'
+  ).join('');
+}
+
+document.getElementById('searchBox').addEventListener('input', render);
+document.getElementById('typeFilter').addEventListener('change', render);
+document.getElementById('stageFilter').addEventListener('change', render);
+document.getElementById('regionFilter').addEventListener('change', render);
+
+window.addEventListener('DOMContentLoaded', () => {
+  let authed = false;
+  try { authed = sessionStorage.getItem('ehubOfflineAuth') === '1'; } catch(e) {}
+  if (authed) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
   }
-  groupedBody.style.display = 'none';
-  flatBody.style.display = '';
-
-  const rows = Array.from(flatBody.querySelectorAll('tr.deal-row'));
-  const key = sortState.key;
-  const dir = sortState.dir === 1 ? 1 : -1;
-
-  rows.sort((a, b) => {
-    let av, bv;
-    if (key === 'acv') {
-      av = parseFloat(a.dataset.acv); bv = parseFloat(b.dataset.acv);
-    } else if (key === 'close') {
-      av = a.dataset.close; bv = b.dataset.close;
-    } else if (key === 'name') {
-      av = a.dataset.name.toLowerCase(); bv = b.dataset.name.toLowerCase();
-    } else if (key === 'account') {
-      av = a.dataset.search.toLowerCase(); bv = b.dataset.search.toLowerCase();
-    } else if (key === 'type') {
-      av = a.dataset.typeSort.toLowerCase(); bv = b.dataset.typeSort.toLowerCase();
-    } else if (key === 'stage') {
-      av = a.dataset.stage; bv = b.dataset.stage;
-    } else if (key === 'owner') {
-      av = a.dataset.owner.toLowerCase(); bv = b.dataset.owner.toLowerCase();
-    } else if (key === 'region') {
-      av = a.dataset.region.toLowerCase(); bv = b.dataset.region.toLowerCase();
-    } else {
-      av = ''; bv = '';
-    }
-    if (av < bv) return -1 * dir;
-    if (av > bv) return 1 * dir;
-    return 0;
-  });
-
-  rows.forEach(r => flatBody.appendChild(r));
-  applyFilters();
-}
-
-applyFilters();
+  populateFilterOptions();
+  renderStats();
+  renderSidebar();
+  render();
+});
 </script>
 </body>
 </html>
